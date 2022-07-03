@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace TeamOfPlayers
 {
-    internal class RbTree<TData, TKey>
+    public class RbTree<TData, TKey>
     {
-        internal enum Color
+        public enum Color
         {
             Red = 0,
             Black
@@ -60,9 +58,9 @@ namespace TeamOfPlayers
             _sentinel = null;
         }
 
-        #region Insert
+        #region Add
 
-        public void Insert(TData item, TKey key)
+        public void Add(TData item, TKey key)
         {
             var insertNode = new Node(item, key);
             if (Root.Data == null)
@@ -81,12 +79,12 @@ namespace TeamOfPlayers
             while (x != _sentinel)
             {
                 parentX = x;
-                x = CompareKeys(insertNode.Key, x.Key) < 0 ? x.Left : x.Right;
+                x = Program.CompareKeys(insertNode.Key, x.Key) < 0 ? x.Left : x.Right;
             }
             insertNode.Parent = parentX;
             if (parentX == _sentinel)
                 Root = insertNode;
-              else if(CompareKeys(insertNode.Key, parentX.Key) < 0)  
+            else if(Program.CompareKeys(insertNode.Key, parentX.Key) < 0)  
                 parentX.Left = insertNode;
             else
                 parentX.Right = insertNode;
@@ -200,7 +198,7 @@ namespace TeamOfPlayers
 
         #region Remove
 
-        public bool Delete(TData data, TKey key)
+        public bool Remove(TData data, TKey key)
         {
             var listNode = FindList(key);
             foreach (var node in listNode)
@@ -210,7 +208,7 @@ namespace TeamOfPlayers
 
                 if (node.Data.GetHashCode() == data.GetHashCode())
                 {
-                    Delete(node);
+                    Remove(node);
                     return true;
                 }
             }
@@ -218,13 +216,13 @@ namespace TeamOfPlayers
             return false;
         }
 
-        public bool Delete(TKey key)
+        public bool Remove(TKey key)
         {
             var z = Find(key);
             if (z == _sentinel)
                 return false;
 
-            Delete(z);
+            Remove(z);
             return true;
         }
 
@@ -251,7 +249,7 @@ namespace TeamOfPlayers
                 v.Parent = u.Parent;
         }
 
-        public void Delete(Node z)
+        public void Remove(Node z)
         {
             var y = z;
             Node x;
@@ -366,6 +364,9 @@ namespace TeamOfPlayers
         //Это касcстыль BUG НЕ ТРОГАТЬ
         public List<TData> FindAge(int age, Func<TKey, int> f)
         {
+            if(!(Root.Key is DateTime))
+                throw new Exception("Кастыль");
+
             var list = new List<TData>();
             var stack = new Stack<Node>();
             stack.Push(Root);
@@ -402,9 +403,9 @@ namespace TeamOfPlayers
                 if (temp == _sentinel)
                     continue;
 
-                if (CompareKeys(key, temp.Key) < 0)
+                if (Program.CompareKeys(key, temp.Key) < 0)
                     stack.Push(temp.Left);
-                else if (CompareKeys(key, temp.Key) > 0)
+                else if (Program.CompareKeys(key, temp.Key) > 0)
                     stack.Push(temp.Right);
                 else
                 {
@@ -422,50 +423,36 @@ namespace TeamOfPlayers
             var temp = Root;
             while (temp != _sentinel)
             {
-                if (CompareKeys(key, temp.Key) < 0)
+                if (Program.CompareKeys(key, temp.Key) < 0)
                     temp = temp.Left;
 
-                if (CompareKeys(key, temp.Key) > 0)
+                if (Program.CompareKeys(key, temp.Key) > 0)
                     temp = temp.Right;
 
-                if (CompareKeys(key, temp.Key) == 0)
+                if (Program.CompareKeys(key, temp.Key) == 0)
                     return temp;
             }
 
             return _sentinel;
         }
 
-        public List<TData> GetList()
-        {
-            var list = new List<TData>();
-            var stack = new Stack<Node>();
-            stack.Push(Root);
-            while (stack.Count != 0)
-            {
-                var node = stack.Pop();
-                if(node == _sentinel)
-                    continue;
+        //public List<TData> GetList()
+        //{
+        //    var list = new List<TData>();
+        //    var stack = new Stack<Node>();
+        //    stack.Push(Root);
+        //    while (stack.Count != 0)
+        //    {
+        //        var node = stack.Pop();
+        //        if(node == _sentinel)
+        //            continue;
 
-                if(node.Right != null) stack.Push(node.Right);
-                if (node.Left != null) stack.Push(node.Left);
-                list.Add(node.Data);
-            }
+        //        if(node.Right != null) stack.Push(node.Right);
+        //        if (node.Left != null) stack.Push(node.Left);
+        //        list.Add(node.Data);
+        //    }
 
-            return list;
-        }
-
-        public static int CompareKeys(TKey key1, TKey key2)
-        {
-            if ((key1 is DateTime && DateTime.Parse(key1.ToString()) < DateTime.Parse(key2.ToString()) ||
-                 !(key1 is DateTime) && string.CompareOrdinal(key1.ToString(), key2.ToString()) < 0))
-                return -1;
-
-            if ((key1 is DateTime && DateTime.Parse(key1.ToString()) > DateTime.Parse(key2.ToString()) ||
-                      !(key1 is DateTime) && string.CompareOrdinal(key1.ToString(), key2.ToString()) > 0))
-                return 1;
-
-            return 0;
-        }
-
+        //    return list;
+        //}
     }
 }

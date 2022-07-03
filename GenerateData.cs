@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 
 namespace TeamOfPlayers
@@ -23,11 +22,11 @@ namespace TeamOfPlayers
             }
         }
         private static readonly List<TeamCounter> Teams = new List<TeamCounter>();
-        private static List<string> _roles = null;
+        private static List<string> _roles;
 
-        public static List<TeamPlayer> GenerateTeamPlayer(Player player, List<TeamPlayer> players)
+        public static List<TeamPlayer> GenerateTeamsForPlayer(Player player, List<TeamPlayer> players)
         {
-            if (_roles == null)
+            if (_roles is null)
             {
                 _roles = new List<string>(20);
                 for (var i = 0; i < 100; i++)
@@ -98,28 +97,22 @@ namespace TeamOfPlayers
             return name;
         }
 
-        public static void GenerateTeamDataBase(RbTree<Player, DateTime> PlayerBase, ref RbTree<TeamPlayer, string> rbTree)
+        public static void GenerateTeamDataBase(List<Player> list1, ref List<TeamPlayer> list2)
         {
-            var list = PlayerBase.GetList();
-            var listTree = new List<TeamPlayer>();
-            foreach (var player in list)
+            foreach (var player in list1)
             {
-                var teamPlayers = GenerateTeamPlayer(player, listTree);
-                foreach (var teamPlayer in teamPlayers)
-                {
-                    listTree.Add(teamPlayer);
-                    rbTree.Insert(teamPlayer, teamPlayer.Role);
-                }
+                var teamPlayers = GenerateTeamsForPlayer(player, list2);
+                list2.AddRange(teamPlayers);
             }
         }
         
-        public static void GeneratePlayerDataBase(ref RbTree<Player, DateTime> rbTree)
+        public static void GeneratePlayerDataBase(ref List<Player> list)
         {
             const int count = 1000;
             for (var i = 0; i < count; i++)
             {
                 var player = GenerateData.GeneratePlayer();
-                rbTree.Insert(player, player.Birthday);
+                list.Add(player);
             }
         }
     }

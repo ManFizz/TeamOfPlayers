@@ -19,50 +19,58 @@ namespace TeamOfPlayers
             InitializeComponent();
         }
 
-        private RbTree<Player, DateTime> _dataBase1 = new RbTree<Player, DateTime>();
-        private readonly HashTable _hashTable = new HashTable();
-        private DataTable _playerTable;
+        private List<Player> listPlayers;
+        private List<TeamPlayer> listTeams;
 
-        private RbTree<TeamPlayer, string> _dataBase2 = new RbTree<TeamPlayer, string>();
-        private DataTable _teamDataTable;
+        private RbTree<Player, DateTime> _treePlayers;
+        private RbTree<TeamPlayer, string> _treeTeams;
 
-        private readonly DataTable _reportTable = new DataTable();
+        private HashTable<Player> _hashTable1;
+        private HashTable<TeamPlayer> _hashTable2;
+
+        private DataTable _playerDisplay;//TODO
+        private DataTable _teamDisplay; //TODO
+
+        private List<Player> _searchArrayPlayers = null;
+        private List<TeamPlayer> _searchArrayTeams = null;
+
+
+        private DataTable _reportDisplay = new DataTable(); //TODO
+
+        public void InitData()
+        {
+            listPlayers = Program.ListPlayers;
+            listTeams = Program.ListTeams;
+
+            _treePlayers = Program.RbTreePlayers;
+            _treeTeams = Program.RbTreeTeams;
+
+            _hashTable1 = Program.HashTablePlayers;
+
+        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            FileReader.Path = "C:\\Users\\Mak\\OneDrive\\Рабочий стол\\Учеба\\TeamOfPlayers\\";
+            _playerDisplay.Columns.Add("ФИО");
+            _playerDisplay.Columns.Add("Дата рождения");
+            _playerDisplay.Columns[1].DataType = typeof(DateTime);
+            _playerDisplay.Columns[1].DateTimeMode = DataSetDateTime.Utc;
+            _playerDisplay.Columns.Add("Виды спорта");
+            dataGridView1.DataSource = _playerDisplay;
 
-            _playerTable.Columns.Add("ФИО");
-            _playerTable.Columns.Add("Дата рождения");
-            _playerTable.Columns[1].DataType = typeof(DateTime);
-            _playerTable.Columns[1].DateTimeMode = DataSetDateTime.Utc;
-            _playerTable.Columns.Add("Виды спорта");
-            dataGridView1.DataSource = _playerTable;
+            _teamDisplay.Columns.Add("ФИО");
+            _teamDisplay.Columns.Add("Команда");
+            _teamDisplay.Columns.Add("Роль");
+            _teamDisplay.Columns.Add("Вид спорта");
+            dataGridView2.DataSource = _teamDisplay;
 
-            _teamDataTable.Columns.Add("ФИО");
-            _teamDataTable.Columns.Add("Команда");
-            _teamDataTable.Columns.Add("Роль");
-            _teamDataTable.Columns.Add("Вид спорта");
-            dataGridView2.DataSource = _teamDataTable;
-
-            _reportTable.Columns.Add("ФИО");
-            _reportTable.Columns.Add("Дата рождения");
-            _reportTable.Columns.Add("Виды спорта");
-            _reportTable.Columns.Add("Вид спорта команды");
-            _reportTable.Columns.Add("Команда");
-            _reportTable.Columns.Add("Роль");
-            dataGridView3.DataSource = _reportTable;
-
-            //GenerateData.GeneratePlayerDataBase(ref _dataBase1);
-            //GenerateData.GenerateTeamDataBase(_dataBase1, ref _dataBase2);
-            //FileReader.Save("inputPlayers.txt", _dataBase1);
-            //FileReader.Save("inputTeamPlayers.txt", _dataBase2);
-
-            FileReader.Read("inputPlayers.txt", ref _dataBase1);
-            FileReader.Read("inputTeamPlayers.txt", ref _dataBase2);
-            var list = _dataBase1.GetList();
-            foreach (var player in list)
-                _hashTable.Add(player);
+            _reportDisplay.Columns.Add("ФИО");
+            _reportDisplay.Columns.Add("Дата рождения");
+            _reportDisplay.Columns.Add("Виды спорта");
+            _reportDisplay.Columns.Add("Вид спорта команды");
+            _reportDisplay.Columns.Add("Команда");
+            _reportDisplay.Columns.Add("Роль");
+            dataGridView3.DataSource = _reportDisplay;
 
             UpdateVizual(UpdateState.All);
         }
@@ -80,18 +88,16 @@ namespace TeamOfPlayers
         {
             if (state == UpdateState.PlayerTable || state == UpdateState.All || state == UpdateState.AllTables)
             {
-                _playerTable.Clear();
-                var players = _dataBase1.GetList();
-                foreach (var player in players)
-                    _playerTable.Rows.Add(CreatePlayerRow(_playerTable, player));
+                _playerDisplay.Clear();
+                foreach (var player in listPlayers)
+                    _playerDisplay.Rows.Add(CreatePlayerRow(_playerDisplay, player));
             }
 
             if (state == UpdateState.TeamTable || state == UpdateState.All || state == UpdateState.AllTables)
             {
-                _teamDataTable.Clear();
-                var teamPlayers = _dataBase2.GetList();
-                foreach (var teamPlayer in teamPlayers)
-                    _teamDataTable.Rows.Add(CreateTeamPlayerRow(_teamDataTable, teamPlayer));
+                _teamDisplay.Clear();
+                foreach (var teamPlayer in listTeams)
+                    _teamDisplay.Rows.Add(CreateTeamPlayerRow(_teamDisplay, teamPlayer));
             }
 
             if (state == UpdateState.ClearError || state == UpdateState.All)
@@ -124,86 +130,29 @@ namespace TeamOfPlayers
             return newRow;
         }
 
-        private void AddPlayerButton_Click(object sender, EventArgs e)
-        {
-            UpdateVizual(UpdateState.ClearError);
-
-            var name = textBoxFIO.Text.Trim(' ');
-            var date = textBoxDate.Text.Trim(' ');
-            var sport = textBoxSport.Text.Trim(' ');
-
-            Player player = null;
-            try {
-                player = FileReader.ParsePlayer(name + ";" + date + ";" + sport);
-            } catch (Exception exception)
-            {
-                ErrorLabel.Text = exception.Message;
-                return;
-            }
-
-            var fPlayer = _dataBase1.GetList();
-            if (fPlayer.Any(p => player.Name == p.Name))
-            {
-                ErrorLabel.Text = "Name already exists";
-                return;
-            }
-
-            _dataBase1.Insert(player, player.Birthday);
-            _hashTable.Add(player);
-
-            _playerTable.Rows.Add(CreatePlayerRow(_playerTable,player));
-            SuccesLabel.Text = ("Игрок " + player.Name + " успешно добавлен");
-            //update не нужен
-        }
-
         private void DeletePlayerButton_Click(object sender, EventArgs e)
         {
             UpdateVizual(UpdateState.ClearError);
 
             var name = textBoxFIO.Text;
-            var date = textBoxDate.Text;
-            var sport = textBoxSport.Text;
 
-            if (name == string.Empty && date == string.Empty && sport == string.Empty)
+            if (_searchArrayPlayers.Count == 0)
             {
-                ErrorLabel.Text = "Не заданы условия удаления";
+                ErrorLabel.Text = "Нечего удалять";
                 return;
             }
-
-            var fPlayer = _dataBase1.GetList();
-            if (name != string.Empty)
-                fPlayer = fPlayer.Where(p => p.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
-            if (date != string.Empty)
+            
+            foreach (var p in _searchArrayPlayers)
             {
-                var b = DateTime.TryParseExact(date, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
-                fPlayer = fPlayer.Where(p => p.Birthday == dateTime).ToList();
+                Program.RemoveData(p);
+                var list = listTeams.Where(c => c.PlayerName == p.Name).ToList();
+                foreach (var t in list)
+                    Program.RemoveData(t);
             }
-
-            if (sport != string.Empty)
-            {
-                var sportList = sport.Split(',');
-                foreach (var str in sportList)
-                    fPlayer = fPlayer.Where(p => p.SportTypes.Any(c => c.IndexOf(str, StringComparison.OrdinalIgnoreCase) >= 0)).ToList();
-            }
-
-            var list = _dataBase2.GetList();
-            foreach (var p in fPlayer)
-            {
-                _dataBase1.Delete(p, p.Birthday);
-                _hashTable.Remove(p);
-                var s = list.Where(c => c.PlayerName == p.Name).ToList();
-                foreach (var tp in s)
-                    _dataBase2.Delete(tp, tp.Role);
-            }
-
-            if (fPlayer.Count > 0)
-            {
-                SuccesLabel.Text = ("Удалено " + fPlayer.Count + " записей");
-                UpdateVizual(UpdateState.AllTables);
-            }
-            else
-                SuccesLabel.Text = ("Ни одной записи небыло удалено");
-
+            
+            SuccesLabel.Text = ("Удалено " + _searchArrayPlayers.Count + " записей");
+            _searchArrayPlayers = null;
+            UpdateVizual(UpdateState.AllTables);
         }
 
         private void SearchButton_Click(object sender, EventArgs e)
@@ -211,37 +160,26 @@ namespace TeamOfPlayers
             UpdateVizual(UpdateState.ClearError);
 
             var name = textBoxFIO.Text;
-            var date = textBoxDate.Text;
-            var sport = textBoxSport.Text;
 
-            if (name == string.Empty && date == string.Empty && sport == string.Empty)
+            if (name == string.Empty)
             {
                 ErrorLabel.Text = "Не заданы условия поиска";
                 return;
             }
-
-            var fPlayer = _dataBase1.GetList();
+            
+            _searchArrayPlayers = listPlayers.ToArray().ToList();
             if (name != string.Empty)
-                fPlayer = fPlayer.Where(p => p.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
-            if (date != string.Empty)
-            {
-                var b = DateTime.TryParseExact(date, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
-                fPlayer = fPlayer.Where(p => p.Birthday == dateTime).ToList();
-            }
+                _searchArrayPlayers = _searchArrayPlayers.Where(p => p.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
 
-            if (sport != string.Empty)
+            if (_searchArrayPlayers.Count > 0)
             {
-                var sportList = sport.Split(',');
-                foreach(var str in sportList)
-                    fPlayer = fPlayer.Where(p => p.SportTypes.Any(c=> c.IndexOf(str, StringComparison.OrdinalIgnoreCase) >= 0)).ToList();
-            }
+                SuccesLabel.Text = ("Найдено " + _searchArrayPlayers.Count + " записей");
+                _playerDisplay.Clear();
+                foreach (var player in _searchArrayPlayers)
+                    _playerDisplay.Rows.Add(CreatePlayerRow(_playerDisplay, player));
 
-            if (fPlayer.Count > 0)
-            {
-                SuccesLabel.Text = ("Найдено " + fPlayer.Count + " записей");
-                _playerTable.Clear();
-                foreach (var player in fPlayer)
-                    _playerTable.Rows.Add(CreatePlayerRow(_playerTable, player));
+                DeletePlayerButton.Enabled = true;
+                ClearButton.Enabled = true;
             }
             else
                 SuccesLabel.Text = ("Ни одной записи небыло найдено");
@@ -252,44 +190,9 @@ namespace TeamOfPlayers
         {
             UpdateVizual(UpdateState.PlayerTable);
             UpdateVizual(UpdateState.ClearError);
-        }
-        
-        private void AddPlayerButton2_Click(object sender, EventArgs e)
-        {
-            UpdateVizual(UpdateState.ClearError);
 
-            var name = textBoxFIO2.Text.Trim(' ');
-            var team = textBoxTeam.Text.Trim(' ');
-            var role = textBoxRole.Text.Trim(' ');
-            var sport = textBoxSport2.Text.Trim(' ');
-            TeamPlayer player = null;
-            try {
-                player = FileReader.ParseTeamPlayer(name + ";" + team + ";" + role + ";" + sport);
-            } catch (Exception exception) 
-            {
-                ErrorLabel.Text = exception.Message;
-                return;
-            }
-
-            var fCheck = _dataBase1.GetList();
-            if (fCheck.All(p => p.Name != name))
-            {
-                ErrorLabel.Text = "Такого игрока нету в таблице \"Игроки\"";
-                return;
-            }
-
-            var fPlayer = _dataBase2.GetList();
-            if (fPlayer.Any(p => name == p.PlayerName && team == p.TeamName))
-            {
-                ErrorLabel.Text = "Такой игрок в этой команде уже есть";
-                return;
-            }
-
-            _dataBase2.Insert(player, player.Role);
-
-            _teamDataTable.Rows.Add(CreateTeamPlayerRow(_teamDataTable, player));
-            SuccesLabel.Text = ("Игрок " + player.PlayerName + " успешно добавлен");
-            //Update не нужен
+            DeletePlayerButton.Enabled = false;
+            ClearButton.Enabled = false;
         }
 
         private void DeletePlayerButton2_Click(object sender, EventArgs e)
@@ -298,36 +201,22 @@ namespace TeamOfPlayers
 
             var name = textBoxFIO2.Text;
             var team = textBoxTeam.Text;
-            var role = textBoxRole.Text;
-            var sport = textBoxSport2.Text;
 
-            if (name == string.Empty && team == string.Empty && role == string.Empty && sport == string.Empty)
+            if (_searchArrayTeams.Count == 0)
             {
-                ErrorLabel.Text = "Не заданы условия удаления";
+                ErrorLabel.Text = "Нечего удалять";
+                throw new Exception("Как тут оказался пользователь"); //TODO REMOVE
                 return;
             }
-
-            var fPlayer = _dataBase2.GetList();
-            if (name != string.Empty)
-                fPlayer = fPlayer.Where(p => p.PlayerName.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
-            if (team != string.Empty)
-                fPlayer = fPlayer.Where(p => p.TeamName.IndexOf(team, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
-            if (role != string.Empty)
-                fPlayer = fPlayer.Where(p => p.Role.IndexOf(role, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
-            if (sport != string.Empty)
-                fPlayer = fPlayer.Where(p => p.SportType.IndexOf(sport, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
-
             
-            foreach (var p in fPlayer)
-            {
-                _dataBase2.Delete(p, p.Role);
-            }
+            foreach (var p in _searchArrayTeams)
+                _treeTeams.Remove(p, p.Role);
+            
+            SuccesLabel.Text = ("Удалено " + _searchArrayTeams.Count + " записей");
+            _searchArrayTeams = null;
 
-            if (fPlayer.Count > 0)
-                SuccesLabel.Text = ("Удалено " + fPlayer.Count + " записей");
-            else
-                SuccesLabel.Text = ("Ни одной записи небыло удалено");
-
+            DeletePlayerButton.Enabled = false;
+            ClearButton.Enabled = false;
             UpdateVizual(UpdateState.TeamTable);
         }
 
@@ -338,32 +227,25 @@ namespace TeamOfPlayers
 
             var name = textBoxFIO2.Text;
             var team = textBoxTeam.Text;
-            var role = textBoxRole.Text;
-            var sport = textBoxSport2.Text;
 
-            if (name == string.Empty && team == string.Empty && role == string.Empty && sport == string.Empty)
+            if (name == string.Empty && team == string.Empty)
             {
                 ErrorLabel.Text = "Не заданы условия поиска";
                 return;
             }
-
-            var fPlayer = _dataBase2.GetList();
+            
+            _searchArrayTeams = listTeams.ToArray().ToList();
             if (name != string.Empty)
-                fPlayer = fPlayer.Where(p => p.PlayerName.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+                _searchArrayTeams = _searchArrayTeams.Where(p => p.PlayerName.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
             if (team != string.Empty)
-                fPlayer = fPlayer.Where(p => p.TeamName.IndexOf(team, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
-            if (role != string.Empty)
-                fPlayer = fPlayer.Where(p => p.Role.IndexOf(role, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
-            if (sport != string.Empty)
-                fPlayer = fPlayer.Where(p => p.SportType.IndexOf(sport, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+                _searchArrayTeams = _searchArrayTeams.Where(p => p.TeamName.IndexOf(team, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
 
-
-            if (fPlayer.Count > 0)
+            if (_searchArrayTeams.Count > 0)
             {
-                SuccesLabel.Text = ("Найдено " + fPlayer.Count + " записей");
-                _teamDataTable.Clear();
-                foreach (var player in fPlayer)
-                    _teamDataTable.Rows.Add(CreateTeamPlayerRow(_teamDataTable, player));
+                SuccesLabel.Text = ("Найдено " + _searchArrayTeams.Count + " записей");
+                _teamDisplay.Clear();
+                foreach (var player in _searchArrayTeams)
+                    _teamDisplay.Rows.Add(CreateTeamPlayerRow(_teamDisplay, player));
             }
             else
                 SuccesLabel.Text = ("Ни одной записи небыло найдено");
@@ -380,7 +262,7 @@ namespace TeamOfPlayers
         {
             UpdateVizual(UpdateState.ClearError);
 
-            _reportTable.Clear();
+            _reportDisplay.Clear();
             
             int age;
             if(!int.TryParse(textBoxAge.Text, out age))
@@ -390,15 +272,15 @@ namespace TeamOfPlayers
             }
 
             var Role = textBoxRole2.Text;
-            if(Role == string.Empty)
+            if(string.IsNullOrEmpty(Role))
             {
                 ErrorLabel.Text = "Empty Role";
                 return;
             }
 
 
-            var table1 = _dataBase1.FindAge(age, CalculateAge);
-            var nodeList = _dataBase2.FindList(Role);
+            var table1 = _treePlayers.FindAge(age, CalculateAge);
+            var nodeList = _treeTeams.FindList(Role);
 
             foreach (var node in nodeList)
             {
@@ -415,7 +297,7 @@ namespace TeamOfPlayers
                 if(player == null)
                     continue;
                 
-                var newRow = _reportTable.NewRow();
+                var newRow = _reportDisplay.NewRow();
                 newRow["ФИО"] = player.Name;
                 newRow["Дата рождения"] = player.Birthday;
                 var sportsString = "";
@@ -425,11 +307,11 @@ namespace TeamOfPlayers
                 newRow["Вид спорта команды"] = teamPlayer.SportType;
                 newRow["Команда"] = teamPlayer.TeamName;
                 newRow["Роль"] = teamPlayer.Role;
-                _reportTable.Rows.Add(newRow);
+                _reportDisplay.Rows.Add(newRow);
                 
             }
 
-            SuccesLabel.Text = "Количество записей удовлетворяющий условиям поиска: " + _reportTable.Rows.Count;
+            SuccesLabel.Text = "Количество записей удовлетворяющий условиям поиска: " + _reportDisplay.Rows.Count;
         }
 
         public int CalculateAge(DateTime dateOfBirth)
@@ -443,15 +325,10 @@ namespace TeamOfPlayers
 
         private void PrintHashTableButton_Click(object sender, EventArgs e)
         {
-            _playerTable.Clear();
-            for (var i = 0; i < _hashTable._capacity; i++)
-            {
-                if (_hashTable._arrStatus[i] != HashTable.HtStatus.Filled)
-                    continue;
-                
-                _playerTable.Rows.Add(CreatePlayerRow(_playerTable, _hashTable._arr[i]));
-
-            }
+            _playerDisplay.Clear();
+            var list = _hashTable1.GetList();
+            foreach (var  p in list)
+                _playerDisplay.Rows.Add(CreatePlayerRow(_playerDisplay, p));
         }
 
         private void SearchHashButton_Click(object sender, EventArgs e)
@@ -466,26 +343,31 @@ namespace TeamOfPlayers
                 return;
             }
 
-            var pos = _hashTable.GetPos(name);
+            var pos = _hashTable1.GetPos(name);
             if (pos == -1)
             {
                 ErrorLabel.Text = "По заданому ФИО ничего не найдено";
                 return;
             }
 
-            _playerTable.Clear();
-            _playerTable.Rows.Add(CreatePlayerRow(_playerTable, _hashTable._arr[pos]));
+            _playerDisplay.Clear();
+            _playerDisplay.Rows.Add(CreatePlayerRow(_playerDisplay, _hashTable1.Get(pos)));
         }
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            FileReader.Save("inputPlayers.txt", _dataBase1);
-            FileReader.Save("inputTeamPlayers.txt", _dataBase2);
+            //FileManager.Save("inputPlayers.txt", _TreePlayers);
+            //FileManager.Save("inputTeamPlayers.txt", _TreeTeams);
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
         }
     }
-
-    //TODO Проверка вносимых данных на ебаные буквы
-    // +-
-    //TODO Проверка ФИО на три слова
-    //
 }

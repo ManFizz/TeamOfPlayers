@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TeamOfPlayers
 {
-    class Player
+    public class Player
     {
         //Unique
         public string Name { set; get; }

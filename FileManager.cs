@@ -5,60 +5,53 @@ using System.Linq;
 
 namespace TeamOfPlayers
 {
-    internal class FileReader
+    internal class FileManager
     {
         public static string Path;
 
-        public static void Read(string fileName, ref RbTree<Player, DateTime> rbTree)
+        public static void ReadPlayers(string fileName, ref List<Player> list, bool custom = false)
         {
-            var fileReader = new StreamReader(Path + fileName);
+            var fileReader = new StreamReader((custom ? "" : Path) + fileName);
             while (!fileReader.EndOfStream)
             {
                 var parse = fileReader.ReadLine();
-                if (string.IsNullOrEmpty(parse))
-                    continue;
-                var p = ParsePlayer(parse);
-                rbTree.Insert(p, p.Birthday);
+                if (!string.IsNullOrEmpty(parse))
+                    list.Add(ParsePlayer(parse));
             }
             fileReader.Close();
         }
 
-        public static void Save(string fileName, RbTree<Player, DateTime> rbTree)
+        public static void ReadTeams(string fileName, ref List<TeamPlayer> list, bool custom = false)
         {
-            var fileWriter = new StreamWriter(Path + fileName);
-            var list = rbTree.GetList();
-            foreach (var p in list)
+            var fileReader = new StreamReader((custom ? "" : Path) + fileName);
+            while (!fileReader.EndOfStream)
             {
-                fileWriter.WriteLine(p.Name + ";" + p.Birthday.ToString("dd.MM.yyyy") + ";"
-                          + p.SportTypes.Aggregate("", (current, s) => current + ("," + s)).Remove(0,1));
+                var parse = fileReader.ReadLine();
+                if (!string.IsNullOrEmpty(parse))
+                    list.Add(ParseTeamPlayer(parse));
             }
+            fileReader.Close();
+        }
+
+        public static void Save(string fileName, List<Player> list, bool custom = false)
+        {
+            var fileWriter = new StreamWriter((custom ? "" : Path) + fileName);
+            foreach (var p in list)
+                fileWriter.WriteLine(p.Name + ";" + p.Birthday.ToString("dd.MM.yyyy") + ";"
+                                     + p.SportTypes.Aggregate("", (current, s) => current + ("," + s)).Remove(0,1));
+            
             fileWriter.Flush();
             fileWriter.Close();
         }
 
-        public static void Save(string fileName, RbTree<TeamPlayer, string> rbTree)
+        public static void Save(string fileName, List<TeamPlayer> list, bool custom = false)
         {
-            var fileWriter = new StreamWriter(Path + fileName);
-            var list = rbTree.GetList();
+            var fileWriter = new StreamWriter((custom ? "" : Path) + fileName);
             foreach (var p in list)
                 fileWriter.WriteLine(p.PlayerName + ";" + p.TeamName + ";" + p.Role + ";" + p.SportType);
 
             fileWriter.Flush();
             fileWriter.Close();
-        }
-
-        public static void Read(string fileName, ref RbTree<TeamPlayer, string> rbTree)
-        {
-            var fileReader = new StreamReader(Path + fileName);
-            while (!fileReader.EndOfStream)
-            {
-                var parse = fileReader.ReadLine();
-                if (string.IsNullOrEmpty(parse))
-                    continue;
-                var p = ParseTeamPlayer(parse);
-                rbTree.Insert(p, p.Role);
-            }
-            fileReader.Close();
         }
 
         public static Player ParsePlayer(string parse)
@@ -165,5 +158,12 @@ namespace TeamOfPlayers
             return new TeamPlayer(parseStrings[0], parseStrings[1], parseStrings[2], parseStrings[3]);
         }
 
+        public static void GenerateFile(ref List<Player> list1, ref List<TeamPlayer> list2)
+        {
+            GenerateData.GeneratePlayerDataBase(ref list1);
+            GenerateData.GenerateTeamDataBase(list1, ref list2);
+            FileManager.Save("inputPlayers.txt", list1);
+            FileManager.Save("inputTeamPlayers.txt", list2);
+        }
     }
 }

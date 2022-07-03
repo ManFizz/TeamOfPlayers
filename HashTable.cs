@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace TeamOfPlayers
 {
-    class HashTable
+    public class HashTable<T>
     {
         public enum HtStatus
         {
@@ -12,12 +13,24 @@ namespace TeamOfPlayers
             Deleted
         }
 
-        public int _size;
-        public int _capacity;
+        private int _size;
+        private int _capacity;
         private readonly int _origSize;
 
-        public Player[] _arr;
-        public HtStatus?[] _arrStatus;
+        private Node[] _arr;
+        private HtStatus?[] _arrStatus;
+
+        public class Node
+        {
+            public T Data;
+            public string Key;
+
+            public Node(T player, string key) { Data = player; Key = key; }
+
+            public static implicit operator bool(Node x) { return x != null; }
+
+            public static implicit operator string(Node x) { return x.Data.ToString(); }
+        }
 
         public HashTable(int iSize = 0)
         {
@@ -29,7 +42,7 @@ namespace TeamOfPlayers
             _origSize = iSize;
             _capacity = 0;
             _size = iSize;
-            _arr = new Player[_size];
+            _arr = new Node[_size];
             _arrStatus = new HtStatus?[_size];
             for (var i = 0; i < _size; i++)
                 _arrStatus[i] = HtStatus.Empty;
@@ -65,18 +78,39 @@ namespace TeamOfPlayers
                 _arrStatus[i] = HtStatus.Empty;
 
             var arr = _arr;
-            _arr = new Player[_size];
+            _arr = new Node[_size];
             for (var i = 0; i < oldSize; i++)
             {
                 if (arrStatus[i] != HtStatus.Filled)
                     continue;
 
-                var pos = GetFreeHash(arr[i].Name);
+                var pos = GetFreeHash(arr[i].Key);
                 _arr[pos] = arr[i];
                 _arrStatus[pos] = HtStatus.Filled;
             }
         }
-        
+
+        public T Get(int pos)
+        {
+            return Enumerable.Range(0, _size-1).Contains(pos) ? _arr[pos].Data : default;
+        }
+
+        public T Get(string key)
+        {
+            var pos = GetPos(key);
+            return pos == -1 ? default : _arr[pos].Data;
+        }
+
+        public List<T> GetList()
+        {
+            var list = new List<T>();
+            for(var i = 0; i < _size; i++)
+                if (_arrStatus[i] == HtStatus.Filled)
+                    list.Add(_arr[i].Data);
+
+            return list;
+        }
+
         public int GetPos(string data)
         {
             int pos;
@@ -86,7 +120,7 @@ namespace TeamOfPlayers
                 pos = GetHash(data, attempt);
                 attempt++;
 
-                if (_arrStatus[pos] != HtStatus.Filled || _arr[pos].Name != data)
+                if (_arrStatus[pos] != HtStatus.Filled || Program.CompareKeys(_arr[pos].Key,data) == 0)
                     continue;
 
                 return pos;
@@ -96,14 +130,15 @@ namespace TeamOfPlayers
             return -1;
         }
 
-        public bool Remove(Player data)
+        public bool Remove(T data, string key)
         {
-            return Remove(data.Name);
+
+            return Remove(new Node(data,key));
         }
 
-        public bool Remove(string data)
+        private bool Remove(Node data)
         {
-            var pos = GetPos(data);
+            var pos = GetPos(data.Key);
             if (pos == -1)
                 return false;
 
@@ -114,12 +149,17 @@ namespace TeamOfPlayers
             return true;
         }
 
-        public int Add(Player data)
+        public int Add(T data, string key)
         {
-            if (GetPos(data.Name) != -1)
+            return Add(new Node(data, key));
+        }
+
+        private int Add(Node data)
+        {
+            if (GetPos(data.Key) != -1)
                 return -1;
 
-            var pos = GetFreeHash(data.Name);
+            var pos = GetFreeHash(data.Key);
             _arr[pos] = data;
             _arrStatus[pos] = HtStatus.Filled;
             _capacity++;
