@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TeamOfPlayers
+namespace TeamOfPlayers.Structures
 {
     public class Player
     {

@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
-namespace TeamOfPlayers
+namespace TeamOfPlayers.Structures
 {
     public class HashTable<T>
     {
-        public enum HtStatus
+        public enum CellStatus
         {
             Empty = 0,
             Filled,
@@ -17,13 +16,15 @@ namespace TeamOfPlayers
         private int _capacity;
         private readonly int _origSize;
 
-        private Node[] _arr;
-        private HtStatus?[] _arrStatus;
+        public Node[] Arr;
+        public CellStatus?[] ArrStatus;
+
+        public Action OnResize;
 
         public class Node
         {
             public T Data;
-            public string Key;
+            public readonly string Key;
 
             public Node(T player, string key) { Data = player; Key = key; }
 
@@ -34,26 +35,28 @@ namespace TeamOfPlayers
 
         public HashTable(int iSize = 0)
         {
-            if (iSize < 0)
-                throw new ArgumentOutOfRangeException();
+            iSize = iSize switch
+            {
+                < 0 => throw new ArgumentOutOfRangeException(),
+                < 4 => 4,
+                _ => iSize
+            };
 
-            if (iSize < 4)
-                iSize = 4;
             _origSize = iSize;
             _capacity = 0;
             _size = iSize;
-            _arr = new Node[_size];
-            _arrStatus = new HtStatus?[_size];
+            Arr = new Node[_size];
+            ArrStatus = new CellStatus?[_size];
             for (var i = 0; i < _size; i++)
-                _arrStatus[i] = HtStatus.Empty;
+                ArrStatus[i] = CellStatus.Empty;
         }
 
         ~HashTable()
         {
-            for (var i = 0; i < _arr.Length;i++)
-                _arr[i] = null;
-            for (var i = 0; i < _arrStatus.Length;i++)
-                _arrStatus[i] = null;
+            for (var i = 0; i < Arr.Length;i++)
+                Arr[i] = null;
+            for (var i = 0; i < ArrStatus.Length;i++)
+                ArrStatus[i] = null;
         }
 
         private void Recalc()
@@ -70,83 +73,78 @@ namespace TeamOfPlayers
                 else return;
             }
             else return;
+            Program.DebugForm.WriteLine("Изменение размера хеш-таблицы " + _size +". Перерасчет всего хеша");
 
 
-            var arrStatus = _arrStatus;
-            _arrStatus = new HtStatus?[_size];
+            var arrStatus = ArrStatus;
+            ArrStatus = new CellStatus?[_size];
             for (var i = 0; i < _size; i++)
-                _arrStatus[i] = HtStatus.Empty;
+                ArrStatus[i] = CellStatus.Empty;
 
-            var arr = _arr;
-            _arr = new Node[_size];
+            var arr = Arr;
+            Arr = new Node[_size];
             for (var i = 0; i < oldSize; i++)
             {
-                if (arrStatus[i] != HtStatus.Filled)
+                if (arrStatus[i] != CellStatus.Filled)
                     continue;
 
                 var pos = GetFreeHash(arr[i].Key);
-                _arr[pos] = arr[i];
-                _arrStatus[pos] = HtStatus.Filled;
+                Arr[pos] = arr[i];
+                ArrStatus[pos] = CellStatus.Filled;
             }
+
+            OnResize();
         }
 
         public T Get(int pos)
         {
-            return Enumerable.Range(0, _size-1).Contains(pos) ? _arr[pos].Data : default;
+            return Enumerable.Range(0, _size-1).Contains(pos) ? Arr[pos].Data : default;
         }
 
         public T Get(string key)
         {
             var pos = GetPos(key);
-            return pos == -1 ? default : _arr[pos].Data;
+            return pos == -1 ? default : Arr[pos].Data;
         }
 
-        public List<T> GetList()
-        {
-            var list = new List<T>();
-            for(var i = 0; i < _size; i++)
-                if (_arrStatus[i] == HtStatus.Filled)
-                    list.Add(_arr[i].Data);
-
-            return list;
-        }
-
-        public int GetPos(string data)
+        public int GetPos(string key)
         {
             int pos;
             var attempt = 0;
             do
             {
-                pos = GetHash(data, attempt);
+                pos = GetHash(key, attempt);
                 attempt++;
 
-                if (_arrStatus[pos] != HtStatus.Filled || Program.CompareKeys(_arr[pos].Key,data) == 0)
+                if (ArrStatus[pos] != CellStatus.Filled || Program.CompareKeys(Arr[pos].Key,key) != 0)
                     continue;
-
+                
+                Program.DebugForm.WriteLine("Взятие хеша: позиция = " + pos + ". -Попыток", attempt);
                 return pos;
 
-            } while (_arrStatus[pos] != HtStatus.Empty);
+            } while (ArrStatus[pos] != CellStatus.Empty);
 
+            Program.DebugForm.WriteLine("Взятие хеша: позиция = -1. -Попыток", attempt);
             return -1;
         }
 
-        public bool Remove(T data, string key)
+        public int Remove(T data, string key)
         {
 
             return Remove(new Node(data,key));
         }
 
-        private bool Remove(Node data)
+        private int Remove(Node data)
         {
             var pos = GetPos(data.Key);
             if (pos == -1)
-                return false;
+                return pos;
 
-            _arrStatus[pos] = HtStatus.Deleted;
+            ArrStatus[pos] = CellStatus.Deleted;
             _capacity--;
             Recalc();
 
-            return true;
+            return pos;
         }
 
         public int Add(T data, string key)
@@ -160,8 +158,8 @@ namespace TeamOfPlayers
                 return -1;
 
             var pos = GetFreeHash(data.Key);
-            _arr[pos] = data;
-            _arrStatus[pos] = HtStatus.Filled;
+            Arr[pos] = data;
+            ArrStatus[pos] = CellStatus.Filled;
             _capacity++;
             Recalc();
             return pos;
@@ -175,18 +173,17 @@ namespace TeamOfPlayers
             {
                 pos = GetHash(data, attempt);
                 attempt++;
-                if (attempt == _size)
-                    throw new Exception("Хеш функция зациклилась");
-            } while (_arrStatus[pos] == HtStatus.Filled);
+            } while (ArrStatus[pos] == CellStatus.Filled);
 
+            Program.DebugForm.WriteLine("Взятие хеша: позиция = " + pos + ". -Попыток", attempt);
             return pos;
         }
 
         private int GetHash(string data, int attempt = 0)
         {
-            //return (GetHashFirst(key) + attempt * GetHashSecond(key, attempt)) % _size;
-            //return (key % _size + attempt * 1) % _size;
-            return (data.Aggregate(0, (current, c) => current + c) + attempt) % _size;
+            var k = _size/ (_size % 10) - 1;
+            if (k <= 0) k = 1;
+            return (data.Sum(c => c) + k*attempt) % _size;
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TeamOfPlayers
+namespace TeamOfPlayers.Structures
 {
     public class RbTree<TData, TKey>
     {
@@ -14,7 +14,7 @@ namespace TeamOfPlayers
         public class Node
         {
             public TData Data;
-            public TKey Key;
+            public readonly TKey Key;
             public Color Color;
             public Node Left, Right, Parent;
 
@@ -43,18 +43,19 @@ namespace TeamOfPlayers
         {
             if (Root == _sentinel)
                 return;
-            var stack = new Stack<Node>();
-            stack.Push(Root);
+            
+            var list = new List<Node> {Root};
             do
             {
-                var node = stack.Pop();
-                if(node == _sentinel)
+                var node = list[list.Count - 1];
+                    list.RemoveAt(list.Count-1);
+                if(node == _sentinel || node == null)
                     continue;
-
-                stack.Push(node.Left);
-                stack.Push(node.Right);
+                
+                list.Add(node.Left);
+                list.Add(node.Right);
             }
-            while (stack.Count != 0 && stack.Peek() != null) ; 
+            while (list.Count != 0) ; 
             _sentinel = null;
         }
 
@@ -98,13 +99,15 @@ namespace TeamOfPlayers
 
         private void InsertFixUp(Node z)
         {
+            var debugCounter = 0;
             while (z != Root && z.Parent.Color == Color.Red)
             {
+                debugCounter++;
                 Node y;
                 if (z.Parent == z.Parent.Parent.Left)
                 {
                     y = z.Parent.Parent.Right;
-                    if (y != null && y.Color == Color.Red)
+                    if (y is {Color: Color.Red})
                     {
                         z.Parent.Color = Color.Black;
                         y.Color = Color.Black;
@@ -117,6 +120,7 @@ namespace TeamOfPlayers
                         {
                             z = z.Parent;
                             LeftRotate(z);
+                            debugCounter++;
                         }
                         z.Parent.Color = Color.Black;
                         z.Parent.Parent.Color = Color.Red;
@@ -126,7 +130,7 @@ namespace TeamOfPlayers
                 else
                 {
                     y = z.Parent.Parent.Left;
-                    if (y != null && y.Color == Color.Red)
+                    if (y is {Color: Color.Red})
                     {
                         z.Parent.Color = Color.Black;
                         y.Color = Color.Black;
@@ -139,6 +143,7 @@ namespace TeamOfPlayers
                         {
                             z = z.Parent;
                             RightRotate(z);
+                            debugCounter++;
                         }
                         z.Parent.Color = Color.Black;
                         z.Parent.Parent.Color = Color.Red;
@@ -147,6 +152,7 @@ namespace TeamOfPlayers
                 }
             }
             Root.Color = Color.Black;
+            Program.DebugForm.WriteLine("Вставка в дерево. -Поворотов", debugCounter);
         }
 
         #endregion
@@ -200,19 +206,23 @@ namespace TeamOfPlayers
 
         public bool Remove(TData data, TKey key)
         {
+            var debugCounter = 0;
             var listNode = FindList(key);
             foreach (var node in listNode)
             {
+                debugCounter++;
                 if (node == _sentinel)
                     continue;
-
+                debugCounter++;
                 if (node.Data.GetHashCode() == data.GetHashCode())
                 {
                     Remove(node);
+                    Program.DebugForm.WriteLine("Удаление из дерева. -Сравнений", debugCounter);
                     return true;
                 }
             }
 
+            Program.DebugForm.WriteLine("Удаление из дерева. -Сравнений", debugCounter);
             return false;
         }
 
@@ -229,11 +239,14 @@ namespace TeamOfPlayers
         private static Node Minimum(Node x)
         {
             var y = _sentinel;
+            var debugCounter = 0;
             while (x != _sentinel)
             {
                 y = x;
                 x = x.Left;
+                debugCounter++;
             }
+            Program.DebugForm.WriteLine("Взятие минимума в дереве. -Сравнений", debugCounter);
             return y;
         }
 
@@ -249,7 +262,7 @@ namespace TeamOfPlayers
                 v.Parent = u.Parent;
         }
 
-        public void Remove(Node z)
+        private void Remove(Node z)
         {
             var y = z;
             Node x;
@@ -266,7 +279,7 @@ namespace TeamOfPlayers
             }
             else
             {
-                y = Minimum(z.Right); //Без проверок возможна бесконечная рекурсия
+                y = Minimum(z.Right);
                 yOriginalColor = y.Color;
                 x = y.Right;
                 if (y.Parent == z)
@@ -289,6 +302,7 @@ namespace TeamOfPlayers
 
         private void DeleteFixUp(Node x)
         {
+            var debugCounter = 0;
             while (x != Root && x.Color == Color.Black)
             {
                 if (x == x.Parent.Left)
@@ -299,6 +313,7 @@ namespace TeamOfPlayers
                         y.Color = Color.Black;
                         x.Parent.Color = Color.Red;
                         LeftRotate(x.Parent);
+                        debugCounter++;
                         y = x.Parent.Right;
                     }
 
@@ -314,12 +329,14 @@ namespace TeamOfPlayers
                             y.Left.Color = Color.Black;
                             y.Color = Color.Red;
                             RightRotate(y);
+                            debugCounter++;
                             y = x.Parent.Right;
                         }
                         y.Color = x.Parent.Color;
                         x.Parent.Color = Color.Black;
                         y.Right.Color = Color.Black;
                         LeftRotate(x.Parent);
+                        debugCounter++;
                         x = Root;
                     }
                 }
@@ -331,6 +348,7 @@ namespace TeamOfPlayers
                         y.Color = Color.Black;
                         x.Parent.Color = Color.Red;
                         RightRotate(x.Parent);
+                        debugCounter++;
                         y = x.Parent.Left;
                     }
 
@@ -346,83 +364,102 @@ namespace TeamOfPlayers
                             y.Right.Color = Color.Black;
                             y.Color = Color.Red;
                             LeftRotate(y);
+                            debugCounter++;
                             y = x.Parent.Left;
                         }
                         y.Color = x.Parent.Color;
                         x.Parent.Color = Color.Black;
                         y.Left.Color = Color.Black;
                         RightRotate(x.Parent);
+                        debugCounter++;
                         x = Root;
                     }
                 }
             }
             x.Color = Color.Black;
+            Program.DebugForm.WriteLine("Удаление из дерева. -Поворотов", debugCounter);
         }
 
         #endregion
 
-        //Это касcстыль BUG НЕ ТРОГАТЬ
         public List<TData> FindAge(int age, Func<TKey, int> f)
         {
-            if(!(Root.Key is DateTime))
-                throw new Exception("Кастыль");
+            if(Root.Key is not DateTime)
+                throw new Exception("Функция не предназначена для работы с этим типом ключа");
 
-            var list = new List<TData>();
-            var stack = new Stack<Node>();
-            stack.Push(Root);
-            while (stack.Count != 0)
+            var outList = new List<TData>();
+            var nodeList = new List<Node> {Root};
+            var debugCounter = 0;
+            while (nodeList.Count != 0)
             {
-                var temp = stack.Pop();
+                var temp = nodeList[nodeList.Count - 1];
+                nodeList.Remove(temp);
+                debugCounter++;
                 if(temp == _sentinel)
                     continue;
-
+                
+                debugCounter++;
                 var tempAge = f(temp.Key);
                 if (tempAge < age)
-                    stack.Push(temp.Left);
+                    nodeList.Add(temp.Left);
                 else if (tempAge > age)
-                    stack.Push(temp.Right);
+                {
+                    nodeList.Add(temp.Right);
+                    debugCounter++;
+                }
                 else if (tempAge == age)
                 {
-                    list.Add(temp.Data);
-                    stack.Push(temp.Left);
-                    stack.Push(temp.Right);
+                    outList.Add(temp.Data);
+                    nodeList.Add(temp.Left);
+                    nodeList.Add(temp.Right);
+                    debugCounter++;
                 }
             }
 
-            return list;
+            Program.DebugForm.WriteLine("Поиск игроков по возрасту, дерево. -Сравнений", debugCounter);
+            return outList;
         }
 
         public List<Node> FindList(TKey key)
         {
             var list = new List<Node>();
-            var stack = new Stack<Node>();
-            stack.Push(Root);
-            while (stack.Count != 0)
+            var nodes = new List<Node> {Root};
+            var debugCounter = 0;
+            while (nodes.Count != 0)
             {
-                var temp = stack.Pop();
+                var temp = nodes[nodes.Count - 1];
+                nodes.RemoveAt(nodes.Count-1);
+                debugCounter++;
                 if (temp == _sentinel)
                     continue;
-
+                debugCounter++;
                 if (Program.CompareKeys(key, temp.Key) < 0)
-                    stack.Push(temp.Left);
+                    nodes.Add(temp.Left);
                 else if (Program.CompareKeys(key, temp.Key) > 0)
-                    stack.Push(temp.Right);
+                {
+                    nodes.Add(temp.Right);
+                    debugCounter++;
+                }
                 else
                 {
                     list.Add(temp);
-                    stack.Push(temp.Left);
-                    stack.Push(temp.Right);
+                    nodes.Add(temp.Left);
+                    nodes.Add(temp.Right);
+                    debugCounter++;
                 }
             }
 
+            Program.DebugForm.WriteLine("Поиск игрока по ключу в дереве. -Сравнений", debugCounter);
             return list;
         }
 
-        public Node Find(TKey key)
+        private Node Find(TKey key)
         {
             var temp = Root;
+            var debugCounter = 0;
             while (temp != _sentinel)
             {
+                debugCounter+=3;
                 if (Program.CompareKeys(key, temp.Key) < 0)
                     temp = temp.Left;
 
@@ -433,26 +470,8 @@ namespace TeamOfPlayers
                     return temp;
             }
 
+            Program.DebugForm.WriteLine("Поиск игрока по ключу в дереве. -Сравнений", debugCounter);
             return _sentinel;
         }
-
-        //public List<TData> GetList()
-        //{
-        //    var list = new List<TData>();
-        //    var stack = new Stack<Node>();
-        //    stack.Push(Root);
-        //    while (stack.Count != 0)
-        //    {
-        //        var node = stack.Pop();
-        //        if(node == _sentinel)
-        //            continue;
-
-        //        if(node.Right != null) stack.Push(node.Right);
-        //        if (node.Left != null) stack.Push(node.Left);
-        //        list.Add(node.Data);
-        //    }
-
-        //    return list;
-        //}
     }
 }

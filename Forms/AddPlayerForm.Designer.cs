@@ -1,4 +1,4 @@
-﻿namespace TeamOfPlayers
+﻿namespace TeamOfPlayers.Forms
 {
     partial class AddPlayerForm
     {
@@ -35,6 +35,7 @@
             this.textBoxFIO = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.textBoxDate = new System.Windows.Forms.TextBox();
+            this.ErrorLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label3
@@ -98,11 +99,24 @@
             this.textBoxDate.Size = new System.Drawing.Size(100, 20);
             this.textBoxDate.TabIndex = 30;
             // 
+            // ErrorLabel
+            // 
+            this.ErrorLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.ErrorLabel.AutoSize = true;
+            this.ErrorLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.ErrorLabel.ForeColor = System.Drawing.Color.Red;
+            this.ErrorLabel.Location = new System.Drawing.Point(-3, 194);
+            this.ErrorLabel.Name = "ErrorLabel";
+            this.ErrorLabel.Size = new System.Drawing.Size(136, 15);
+            this.ErrorLabel.TabIndex = 35;
+            this.ErrorLabel.Text = "Сообщение об ошибке";
+            // 
             // AddPlayerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(304, 221);
+            this.Controls.Add(this.ErrorLabel);
             this.Controls.Add(this.AddPlayerButton);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.textBoxSport);
@@ -126,5 +140,6 @@
         private System.Windows.Forms.TextBox textBoxFIO;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textBoxDate;
+        private System.Windows.Forms.Label ErrorLabel;
     }
 }

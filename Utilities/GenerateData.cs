@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TeamOfPlayers.Structures;
 
-namespace TeamOfPlayers
+namespace TeamOfPlayers.Utilities
 {
-    internal class GenerateData
+    internal static class GenerateData
     {
         private static readonly Random Rand = new Random(DateTime.Now.Second);
 
@@ -24,15 +25,13 @@ namespace TeamOfPlayers
         private static readonly List<TeamCounter> Teams = new List<TeamCounter>();
         private static List<string> _roles;
 
-        public static List<TeamPlayer> GenerateTeamsForPlayer(Player player, List<TeamPlayer> players)
+        private static List<TeamPlayer> GenerateTeamsForPlayer(Player player, List<TeamPlayer> players)
         {
             if (_roles is null)
             {
                 _roles = new List<string>(20);
-                for (var i = 0; i < 100; i++)
-                {
+                for (var i = 0; i < 30; i++)
                     _roles.Add(GenerateName());
-                }
             }
             
             var outList = new List<TeamPlayer>();
@@ -43,11 +42,17 @@ namespace TeamOfPlayers
                 TeamCounter team = null;
                 foreach (var t in Teams)
                 {
-                    if (t.PlayersCount < iTeam && !players.Any(p => p.PlayerName == player.Name && p.TeamName == t.Name))
-                    {
-                        team = t;
-                        break;
-                    }
+                    if (!player.SportTypes.Contains(t.SportType) || t.PlayersCount >= iTeam)
+                        continue;
+
+                    if (players.Any(p => p.PlayerName == player.Name && p.TeamName == t.Name))
+                        continue;
+                    
+                    if (outList.Any(p => p.PlayerName == player.Name && p.TeamName == t.Name))
+                        continue;
+
+                    team = t;
+                    break;
                 }
 
                 if (team == null)
@@ -62,10 +67,10 @@ namespace TeamOfPlayers
             return outList;
     }
 
-        public static Player GeneratePlayer() { return new Player(GenerateFullName(), RandomDay(), GenerateListName()); }
+        private static Player GeneratePlayer() { return new Player(GenerateFullName(), GenerateDay(), GenerateListName()); }
 
-        private static DateTime RandomDay() { return new DateTime(1965, 1, 1).AddDays(Rand.Next(18000)); }
-
+        private static DateTime GenerateDay() { return new DateTime(1965, 1, 1).AddDays(Rand.Next(18000)); }
+         
         private static string GenerateFullName() { return GenerateName() + " " + GenerateName() + " " + GenerateName(); }
 
         private static List<string> GenerateListName()
@@ -85,7 +90,7 @@ namespace TeamOfPlayers
             var name = "";
             name += consonants[Rand.Next(consonants.Length)].ToUpper();
             name += vowels[Rand.Next(vowels.Length)];
-            var b = 2; //b tells how many times a new letter has been added. It's 2 right now because the first two letters are already in the name.
+            var b = 2;
             while (b < len)
             {
                 name += consonants[Rand.Next(consonants.Length)];
@@ -97,23 +102,25 @@ namespace TeamOfPlayers
             return name;
         }
 
-        public static void GenerateTeamDataBase(List<Player> list1, ref List<TeamPlayer> list2)
+        public static void GenerateDataBase(int count)
         {
-            foreach (var player in list1)
+            GeneratePlayerDataBase(count);
+            GenerateTeamDataBase();
+        }
+
+        private static void GenerateTeamDataBase()
+        {
+            foreach (var player in Program.ListPlayers)
             {
-                var teamPlayers = GenerateTeamsForPlayer(player, list2);
-                list2.AddRange(teamPlayers);
+                var teamPlayers = GenerateTeamsForPlayer(player, Program.ListTeams);
+                teamPlayers.ForEach(Program.AddData);
             }
         }
-        
-        public static void GeneratePlayerDataBase(ref List<Player> list)
-        {
-            const int count = 1000;
+
+        private static void GeneratePlayerDataBase(int count)
+        { 
             for (var i = 0; i < count; i++)
-            {
-                var player = GenerateData.GeneratePlayer();
-                list.Add(player);
-            }
+                Program.AddData(GeneratePlayer());
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace TeamOfPlayers
+﻿namespace TeamOfPlayers.Forms
 {
     partial class AddTeamForm
     {
@@ -30,13 +30,13 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AddTeamForm));
             this.label7 = new System.Windows.Forms.Label();
-            this.textBoxSport2 = new System.Windows.Forms.TextBox();
+            this.textBoxSport = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.textBoxRole = new System.Windows.Forms.TextBox();
             this.textBoxTeam = new System.Windows.Forms.TextBox();
-            this.textBoxFIO2 = new System.Windows.Forms.TextBox();
+            this.textBoxFIO = new System.Windows.Forms.TextBox();
             this.AddPlayerButton2 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
@@ -49,13 +49,12 @@
             this.label7.TabIndex = 33;
             this.label7.Text = "Вид спорта";
             // 
-            // textBoxSport2
+            // textBoxSport
             // 
-            this.textBoxSport2.Location = new System.Drawing.Point(167, 144);
-            this.textBoxSport2.Name = "textBoxSport2";
-            this.textBoxSport2.Size = new System.Drawing.Size(100, 20);
-            this.textBoxSport2.TabIndex = 32;
-            this.textBoxSport2.TextChanged += new System.EventHandler(this.textBoxSport2_TextChanged);
+            this.textBoxSport.Location = new System.Drawing.Point(167, 144);
+            this.textBoxSport.Name = "textBoxSport";
+            this.textBoxSport.Size = new System.Drawing.Size(100, 20);
+            this.textBoxSport.TabIndex = 32;
             // 
             // label4
             // 
@@ -81,9 +80,9 @@
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(12, 37);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(131, 13);
+            this.label6.Size = new System.Drawing.Size(127, 13);
             this.label6.TabIndex = 25;
-            this.label6.Text = "Фамилия Имя Отчество";
+            this.label6.Text = "Фамилия имя отчество";
             // 
             // textBoxRole
             // 
@@ -91,7 +90,6 @@
             this.textBoxRole.Name = "textBoxRole";
             this.textBoxRole.Size = new System.Drawing.Size(100, 20);
             this.textBoxRole.TabIndex = 27;
-            this.textBoxRole.TextChanged += new System.EventHandler(this.textBoxRole_TextChanged);
             // 
             // textBoxTeam
             // 
@@ -99,15 +97,13 @@
             this.textBoxTeam.Name = "textBoxTeam";
             this.textBoxTeam.Size = new System.Drawing.Size(100, 20);
             this.textBoxTeam.TabIndex = 26;
-            this.textBoxTeam.TextChanged += new System.EventHandler(this.textBoxTeam_TextChanged);
             // 
-            // textBoxFIO2
+            // textBoxFIO
             // 
-            this.textBoxFIO2.Location = new System.Drawing.Point(167, 34);
-            this.textBoxFIO2.Name = "textBoxFIO2";
-            this.textBoxFIO2.Size = new System.Drawing.Size(100, 20);
-            this.textBoxFIO2.TabIndex = 25;
-            this.textBoxFIO2.TextChanged += new System.EventHandler(this.textBoxFIO2_TextChanged);
+            this.textBoxFIO.Location = new System.Drawing.Point(167, 34);
+            this.textBoxFIO.Name = "textBoxFIO";
+            this.textBoxFIO.Size = new System.Drawing.Size(100, 20);
+            this.textBoxFIO.TabIndex = 25;
             // 
             // AddPlayerButton2
             // 
@@ -125,33 +121,31 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(304, 221);
             this.Controls.Add(this.label7);
-            this.Controls.Add(this.textBoxSport2);
+            this.Controls.Add(this.textBoxSport);
             this.Controls.Add(this.AddPlayerButton2);
             this.Controls.Add(this.label6);
-            this.Controls.Add(this.textBoxFIO2);
+            this.Controls.Add(this.textBoxFIO);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.textBoxRole);
             this.Controls.Add(this.textBoxTeam);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Icon = ((System.Drawing.Icon) (resources.GetObject("$this.Icon")));
             this.Name = "AddTeamForm";
             this.Text = "Добавить игрока команды";
-            this.Load += new System.EventHandler(this.AddTeamForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
 
         private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.TextBox textBoxSport2;
+        private System.Windows.Forms.TextBox textBoxSport;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox textBoxRole;
         private System.Windows.Forms.TextBox textBoxTeam;
-        private System.Windows.Forms.TextBox textBoxFIO2;
+        private System.Windows.Forms.TextBox textBoxFIO;
         private System.Windows.Forms.Button AddPlayerButton2;
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TeamOfPlayers
+﻿namespace TeamOfPlayers.Structures
 {
     public class TeamPlayer
     {
