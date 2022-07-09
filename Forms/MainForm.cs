@@ -108,8 +108,13 @@ namespace TeamOfPlayers.Forms
                 MessageBox.Show("Поиск пуст","Удаление не выполнено",  MessageBoxButtons.OK);
                 return;
             }
+
+            if (Program.RemoveData(_searchPlayer) == false)
+            {
+                MessageBox.Show("Операция отменена пользователем","Удаление не выполнено",  MessageBoxButtons.OK);
+                return;
+            }
             
-            Program.RemoveData(_searchPlayer);
             MessageBox.Show("Удалены записи об " + _searchPlayer.Name,"Удаление выполнено",  MessageBoxButtons.OK);
             _searchPlayer = null;
             

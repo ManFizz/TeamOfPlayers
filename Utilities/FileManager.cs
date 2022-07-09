@@ -183,7 +183,7 @@ namespace TeamOfPlayers.Utilities
         {
             using var openFileDialog = new OpenFileDialog();
             openFileDialog.InitialDirectory = "";
-            openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            openFileDialog.Filter = "Текстовый файл (*.txt)|*.txt";
             openFileDialog.FilterIndex = 2;
             openFileDialog.RestoreDirectory = true;
 

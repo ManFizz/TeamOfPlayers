@@ -27,10 +27,17 @@ namespace TeamOfPlayers.Forms
                 MessageBox.Show(exception.Message,"Игрок не добавлен",  MessageBoxButtons.OK);
                 return;
             }
-            
-            if (Program.HsTbPlayers.GetPos(teamPlayer.PlayerName) == -1)
+
+            var player = Program.HsTbPlayers.Get(teamPlayer.PlayerName);
+            if (player == null)
             {
                 MessageBox.Show("Такого игрока нету в таблице \"Игроки\"","Игрок не добавлен",  MessageBoxButtons.OK);
+                return;
+            }
+
+            if (!player.SportTypes.Contains(sport))
+            {
+                MessageBox.Show("Игрок не занимается таким видом спорта","Игрок не добавлен",  MessageBoxButtons.OK);
                 return;
             }
             

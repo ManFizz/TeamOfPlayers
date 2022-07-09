@@ -80,6 +80,7 @@ namespace TeamOfPlayers.Forms
         {
             treeView1.BeginUpdate();
             treeView1.Nodes.Clear();
+            if(treePlayers.Root != null)
             SetNodeChildPlayer(treeView1.Nodes.Add(treePlayers.Root.Data.Birthday.ToString("dd.MM.yyyy") + " \\ " + treePlayers.Root.Data.Name), treePlayers.Root.Left,
                 treePlayers.Root.Right);
             treeView1.EndUpdate();

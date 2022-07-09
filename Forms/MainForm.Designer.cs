@@ -243,7 +243,7 @@ namespace TeamOfPlayers.Forms
             this.ClearPlayerButton.Name = "ClearPlayerButton";
             this.ClearPlayerButton.Size = new System.Drawing.Size(115, 23);
             this.ClearPlayerButton.TabIndex = 31;
-            this.ClearPlayerButton.Text = "Очистить поиск";
+            this.ClearPlayerButton.Text = "Обновить таблицу";
             this.ClearPlayerButton.UseVisualStyleBackColor = false;
             this.ClearPlayerButton.Click += new System.EventHandler(this.ClearSearchButton1_Click);
             // 
@@ -308,7 +308,7 @@ namespace TeamOfPlayers.Forms
             this.ClearTeamButton.Name = "ClearTeamButton";
             this.ClearTeamButton.Size = new System.Drawing.Size(110, 23);
             this.ClearTeamButton.TabIndex = 31;
-            this.ClearTeamButton.Text = "Очистить поиск";
+            this.ClearTeamButton.Text = "Обновить таблицу";
             this.ClearTeamButton.UseVisualStyleBackColor = false;
             this.ClearTeamButton.Click += new System.EventHandler(this.ClearButton2_Click);
             // 

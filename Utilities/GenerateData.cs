@@ -108,7 +108,7 @@ namespace TeamOfPlayers.Utilities
             GenerateTeamDataBase();
         }
 
-        private static void GenerateTeamDataBase()
+        public static void GenerateTeamDataBase()
         {
             foreach (var player in Program.ListPlayers)
             {
@@ -117,7 +117,7 @@ namespace TeamOfPlayers.Utilities
             }
         }
 
-        private static void GeneratePlayerDataBase(int count)
+        public static void GeneratePlayerDataBase(int count)
         { 
             for (var i = 0; i < count; i++)
                 Program.AddData(GeneratePlayer());

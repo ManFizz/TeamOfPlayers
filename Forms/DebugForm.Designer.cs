@@ -89,11 +89,11 @@ namespace TeamOfPlayers.Forms
             // 
             // ClearLogButton
             // 
-            this.ClearLogButton.Location = new System.Drawing.Point(743, 36);
+            this.ClearLogButton.Location = new System.Drawing.Point(693, 36);
             this.ClearLogButton.Name = "ClearLogButton";
-            this.ClearLogButton.Size = new System.Drawing.Size(75, 23);
+            this.ClearLogButton.Size = new System.Drawing.Size(125, 23);
             this.ClearLogButton.TabIndex = 4;
-            this.ClearLogButton.Text = "Очистить";
+            this.ClearLogButton.Text = "Очистить логи";
             this.ClearLogButton.UseVisualStyleBackColor = true;
             this.ClearLogButton.Click += new System.EventHandler(this.ClearLogButton_Click);
             // 
@@ -121,7 +121,7 @@ namespace TeamOfPlayers.Forms
             this.GenerateButton.Name = "GenerateButton";
             this.GenerateButton.Size = new System.Drawing.Size(75, 20);
             this.GenerateButton.TabIndex = 1;
-            this.GenerateButton.Text = "Создать";
+            this.GenerateButton.Text = "Добавить";
             this.GenerateButton.UseVisualStyleBackColor = true;
             this.GenerateButton.Click += new System.EventHandler(this.GenerateButton_Click);
             // 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Windows.Forms;
 using TeamOfPlayers.Forms;
 using TeamOfPlayers.Structures;
@@ -35,6 +36,9 @@ namespace TeamOfPlayers
 
         public static MainForm MainForm;
 
+        private static string PathPlayers { get; } = "Players.txt";
+        private static string PathTeams { get; } = "TeamPlayers.txt";
+
         [STAThread]
         private static void Main()
         {
@@ -62,8 +66,16 @@ namespace TeamOfPlayers
             DisplayHashTable2.Columns.Add("Вид спорта");
             
             DebugForm = new DebugForm();
-            FileManager.ReadPlayers("Players.txt");
-            FileManager.ReadTeams("TeamPlayers.txt");
+            if(File.Exists(PathPlayers))
+                FileManager.ReadPlayers(PathPlayers);
+            else if(MessageBox.Show("Не обнаружен файл \"" + PathPlayers + "\". Сгенерировать случайные данные игроков?", "Заполнение данными", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                GenerateData.GeneratePlayerDataBase(1000);
+                
+            if(File.Exists(PathTeams))
+                FileManager.ReadTeams(PathTeams);
+            else if(MessageBox.Show("Не обнаружен файл \"" + PathTeams + "\". Сгенерировать случайные данные игроков команд?", "Заполнение данными", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                GenerateData.GenerateTeamDataBase();
+
             
             DebugForm.dataGridView1.DataSource = DisplayHashTable1;
             DebugForm.dataGridView2.DataSource = DisplayHashTable2;
@@ -71,21 +83,29 @@ namespace TeamOfPlayers
             Application.Run(MainForm = new MainForm());
         }
 
-        public static void RemoveData(Player data)
+        public static bool RemoveData(Player data)
         {
-            if(!ListPlayers.Remove(data))
+            var list = TreeTeamsByName.FindList(data.Name);
+            if (list.Count > 0)
+            {
+                var dialogResult = MessageBox.Show("В справочнике \"Игроки команд\" есть связанные записи. Они тоже будут удалены. Вы действительно хотите продолжить?", "Обнаружена связность", MessageBoxButtons.YesNo);
+                if (dialogResult == DialogResult.No)
+                    return false;
+            }
+            foreach (var t in list)
+                RemoveData(t.Data);
+            
+            if(ListPlayers.Remove(data) == false)
                 throw new Exception("Запись не найдена");
             
             TreePlayers.Remove(data, data.Birthday);
             var htPos = HsTbPlayers.Remove(data, data.Name);
 
-            var list = TreeTeamsByName.FindList(data.Name);
-            foreach (var t in list)
-                RemoveData(t.Data);
-            
+
             //Debug
             DisplayHashTable1.Rows.Remove(DisplayHashTable1.Rows.Find(htPos));
             DebugForm.ReBuildTreePlayers(TreePlayers);
+            return true;
         }
 
         public static void RemoveData(TeamPlayer data)
