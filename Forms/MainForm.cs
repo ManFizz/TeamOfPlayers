@@ -234,8 +234,10 @@ namespace TeamOfPlayers.Forms
                 _reportDisplay.Rows.Add(newRow);
                 
             }
-
-            MessageBox.Show("Найдено " + _reportDisplay.Rows.Count + " кандидатов","Кандидаты не найдены",  MessageBoxButtons.OK);
+            if(_reportDisplay.Rows.Count > 0)
+                MessageBox.Show("Найдено " + _reportDisplay.Rows.Count + " кандидатов","Кандидаты найдены",  MessageBoxButtons.OK);
+            else 
+                MessageBox.Show("Ни один игрок не подошел под заданные условия","Кандидаты не найдены",  MessageBoxButtons.OK);
         }
 
         private static int CalculateAge(DateTime dateOfBirth)

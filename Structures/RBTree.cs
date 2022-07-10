@@ -214,12 +214,12 @@ namespace TeamOfPlayers.Structures
                 if (node == _sentinel)
                     continue;
                 debugCounter++;
-                if (node.Data.GetHashCode() == data.GetHashCode())
-                {
-                    Remove(node);
-                    Program.DebugForm.WriteLine("Удаление из дерева. -Сравнений", debugCounter);
-                    return true;
-                }
+                if (node.Data.GetHashCode() != data.GetHashCode())
+                    continue;
+                
+                Remove(node);
+                Program.DebugForm.WriteLine("Удаление из дерева. -Сравнений", debugCounter);
+                return true;
             }
 
             Program.DebugForm.WriteLine("Удаление из дерева. -Сравнений", debugCounter);
