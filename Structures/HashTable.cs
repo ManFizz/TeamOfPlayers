@@ -109,7 +109,12 @@ namespace TeamOfPlayers.Structures
 
         public int GetPos(string key)
         {
-            int pos;
+            var pos = -1;
+            return GetPos(key, ref pos);
+        }
+
+        private int GetPos(string key, ref int pos)
+        {
             var attempt = 0;
             do
             {
@@ -119,12 +124,12 @@ namespace TeamOfPlayers.Structures
                 if (ArrStatus[pos] != CellStatus.Filled || Program.CompareKeys(Arr[pos].Key,key) != 0)
                     continue;
                 
-                Program.DebugForm.WriteLine("Взятие хеша: позиция = " + pos + ". -Попыток", attempt);
+                Program.DebugForm.WriteLine("Взятие хеша по ключу <" + key +"> : позиция = " + pos + ". -Попыток", attempt);
                 return pos;
 
             } while (ArrStatus[pos] != CellStatus.Empty);
 
-            Program.DebugForm.WriteLine("Взятие хеша: позиция = -1. -Попыток", attempt);
+            Program.DebugForm.WriteLine("Взятие хеша по ключу <" + key +"> : позиция = -1. -Попыток", attempt);
             return -1;
         }
 
@@ -154,10 +159,11 @@ namespace TeamOfPlayers.Structures
 
         private int Add(Node data)
         {
-            if (GetPos(data.Key) != -1)
+            var pos = -1;
+            var k = GetPos(data.Key, ref pos);
+            if (k != -1)
                 return -1;
 
-            var pos = GetFreeHash(data.Key);
             Arr[pos] = data;
             ArrStatus[pos] = CellStatus.Filled;
             _capacity++;
@@ -165,18 +171,23 @@ namespace TeamOfPlayers.Structures
             return pos;
         }
 
-        private int GetFreeHash(string data)
+        private int GetFreeHash(string key, ref int attempt)
         {
             int pos;
-            var attempt = 0;
             do
             {
-                pos = GetHash(data, attempt);
+                pos = GetHash(key, attempt);
                 attempt++;
             } while (ArrStatus[pos] == CellStatus.Filled);
 
-            Program.DebugForm.WriteLine("Взятие хеша: позиция = " + pos + ". -Попыток", attempt);
+            Program.DebugForm.WriteLine("Взятие хеша по ключу <" + key + "> : позиция = " + pos + ". -Попыток", attempt);
             return pos;
+        }
+
+        private int GetFreeHash(string key)
+        {
+            var attempt = 0;
+            return GetFreeHash(key, ref attempt);
         }
 
         private int GetHash(string data, int attempt = 0)

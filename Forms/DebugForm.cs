@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using TeamOfPlayers.Structures;
@@ -9,7 +10,7 @@ namespace TeamOfPlayers.Forms
 {
     public partial class DebugForm : Form
     {
-        private DataTable _eventTable = new();
+        private readonly DataTable _eventTable = new();
         public DebugForm()
         {
             InitializeComponent();
@@ -22,6 +23,8 @@ namespace TeamOfPlayers.Forms
             t  = _eventTable.Columns.Add("Счет");
             t.DataType = typeof(int);
             dataGridView3.DataSource = _eventTable;
+            dataGridView3.Columns[1].Width = 656;
+            dataGridView3.Columns[2].Width = 50;
         }
         
         public static void DebugAddRow(Player data, int htPos)
@@ -67,62 +70,146 @@ namespace TeamOfPlayers.Forms
                     DebugAddRow(Program.HsTbTeams.Arr[i].Data, i);
         }
 
-        private static void SetNodeChildPlayer(TreeNode parent, RbTree<Player, DateTime>.Node left,
-            RbTree<Player, DateTime>.Node right)
+        /*private static void SetNodeChildPlayer(TreeNode parent, RbTree<Player, DateTime>.Node node)
         {
-            if(left?.Data != null)
-                SetNodeChildPlayer(parent.Nodes.Add(left.Data.Birthday.ToString("dd.MM.yyyy") + " \\ " + left.Data.Name), left.Left, left.Right);
+            if (node?.Data == null)
+                return;
             
-            if(right?.Data != null)
-                SetNodeChildPlayer(parent.Nodes.Add(right.Data.Birthday.ToString("dd.MM.yyyy") + " \\ " + right.Data.Name), right.Left, right.Right);
+            var displayNode = parent.Nodes.Add(node.Data.Birthday.ToString("dd.MM.yyyy") + " \\ " + node.Data.Name);
+            if(node.Color is RbTree<Player, DateTime>.Color.Red)
+                displayNode.ForeColor = Color.Brown;
+            
+            SetNodeChildPlayer(displayNode, node.Left);
+            SetNodeChildPlayer(displayNode, node.Right);
+            
         }
         public void ReBuildTreePlayers(RbTree<Player, DateTime> treePlayers)
         {
             treeView1.BeginUpdate();
             treeView1.Nodes.Clear();
-            if(treePlayers.Root != null)
-            SetNodeChildPlayer(treeView1.Nodes.Add(treePlayers.Root.Data.Birthday.ToString("dd.MM.yyyy") + " \\ " + treePlayers.Root.Data.Name), treePlayers.Root.Left,
-                treePlayers.Root.Right);
+            if (treePlayers.Root != null)
+            {
+                var s = treeView1.Nodes.Add(treePlayers.Root.Data.Birthday.ToString("dd.MM.yyyy") + " \\ " + treePlayers.Root.Data.Name);
+                SetNodeChildPlayer(s, treePlayers.Root.Left);
+                SetNodeChildPlayer(s, treePlayers.Root.Right);
+            }
+
             treeView1.EndUpdate();
         }
         
         
-        private static void SetNodeChildTeam(TreeNode parent, RbTree<TeamPlayer, string>.Node left,
-            RbTree<TeamPlayer, string>.Node right)
+        private static void SetNodeChildTeam(TreeNode parent, RbTree<TeamPlayer, string>.Node node)
         {
-            if(left?.Data != null)
-                SetNodeChildTeam(parent.Nodes.Add(left.Data.Role + " \\ " + left.Data.PlayerName  +  " \\ " + left.Data.TeamName), left.Left, left.Right);
+            if (node?.Data == null)
+                return;
             
-            if(right?.Data != null)
-                SetNodeChildTeam(parent.Nodes.Add(right.Data.Role + " \\ " + right.Data.PlayerName  +  " \\ " + right.Data.TeamName), right.Left, right.Right);
+            var displayNode = parent.Nodes.Add(node.Data.Role + " \\ " + node.Data.PlayerName  +  " \\ " + node.Data.TeamName);
+            if(node.Color is RbTree<TeamPlayer, string>.Color.Red)
+                displayNode.ForeColor = Color.Brown;
+            
+            SetNodeChildTeam(displayNode, node.Left);
+            SetNodeChildTeam(displayNode, node.Right);
         }
         
         public void ReBuildTreeTeams(RbTree<TeamPlayer, string> treeTeams)
         {
             treeView2.BeginUpdate();
             treeView2.Nodes.Clear();
-            SetNodeChildTeam(treeView2.Nodes.Add(treeTeams.Root.Data.Role + " \\ " + treeTeams.Root.Data.PlayerName  +  " \\ " + treeTeams.Root.Data.TeamName), treeTeams.Root.Left,
-                treeTeams.Root.Right);
+            if (treeTeams.Root != null)
+            {
+                var s = treeView2.Nodes.Add(treeTeams.Root.Data.Role + @" \ " + treeTeams.Root.Data.PlayerName + @" \ " + treeTeams.Root.Data.TeamName);
+                SetNodeChildTeam(s, treeTeams.Root.Left);
+                SetNodeChildTeam(s, treeTeams.Root.Right);
+            }
+
             treeView2.EndUpdate();
         }
         
         
-        private static void SetNodeChildTeamByName(TreeNode parent, RbTree<TeamPlayer, string>.Node left,
-            RbTree<TeamPlayer, string>.Node right)
+        private static void SetNodeChildTeamByName(TreeNode parent, RbTree<TeamPlayer, string>.Node node)
         {
-            if(left?.Data != null)
-                SetNodeChildTeamByName(parent.Nodes.Add(left.Data.PlayerName  +  " \\ " + left.Data.TeamName), left.Left, left.Right);
+            if (node?.Data == null)
+                return;
+
+            var displayNode = parent.Nodes.Add(node.Data.PlayerName + " \\ " + node.Data.TeamName);
+            if(node.Color is RbTree<TeamPlayer, string>.Color.Red)
+                displayNode.ForeColor = Color.Brown;
             
-            if(right?.Data != null)
-                SetNodeChildTeamByName(parent.Nodes.Add(right.Data.PlayerName  +  " \\ " + right.Data.TeamName), right.Left, right.Right);
+            SetNodeChildTeamByName(displayNode, node.Left);
+            SetNodeChildTeamByName(displayNode, node.Right);
         }
         
         public void ReBuildTreeTeamsByName(RbTree<TeamPlayer, string> treeTeams)
         {
             treeView3.BeginUpdate();
             treeView3.Nodes.Clear();
-            SetNodeChildTeamByName(treeView3.Nodes.Add(treeTeams.Root.Data.PlayerName  +  " \\ " + treeTeams.Root.Data.TeamName), treeTeams.Root.Left,
-                treeTeams.Root.Right);
+            if (treeTeams.Root != null)
+            {
+                var s = treeView3.Nodes.Add(treeTeams.Root);
+                SetNodeChildTeamByName(s, treeTeams.Root.Left);
+                SetNodeChildTeamByName(s, treeTeams.Root.Right);
+            }
+
+            treeView3.EndUpdate();
+        }*/
+
+        public string ConvertByName(RbTree<TeamPlayer, string>.Node node)
+        {
+            if (node.Empty())
+                return null;
+
+            var sOut = "";
+            foreach (var teamPlayer in node.GetList())
+                sOut += teamPlayer.PlayerName + @" \ " + teamPlayer.TeamName + @"; ";
+            return sOut;
+        }
+        
+        public string ConvertByRole(RbTree<TeamPlayer, string>.Node node)
+        {
+            if (node.Empty())
+                return null;
+
+            var sOut = "";
+            foreach (var teamPlayer in node.GetList())
+                sOut += teamPlayer.Role + @" \ " + teamPlayer.PlayerName + @" \ " + teamPlayer.TeamName + @"; ";
+            return sOut;
+        }
+        
+        public string ConvertByDate(RbTree<Player, DateTime>.Node node)
+        {
+            if (node.Empty())
+                return null;
+            
+            var sOut = "";
+            foreach (var player in node.GetList())
+                sOut += player.Birthday.ToString("dd.MM.yyyy") + " \\ " + player.Name + @"; ";
+            return sOut;
+        }
+
+        private static void RecursivelyAddNodeToTheTree<TData, TKey>(TreeNode parent,RbTree<TData, TKey>.Node node, Func<RbTree<TData, TKey>.Node, string> convertToString)
+        {
+            var str = convertToString(node);
+            if (str is null)
+                return;
+            
+            var s = parent.Nodes.Add(str);
+            if(node.Color is RbTree<TData, TKey>.Color.Red)
+                s.ForeColor = Color.Red;
+            RecursivelyAddNodeToTheTree(s, node.Left, convertToString);
+            RecursivelyAddNodeToTheTree(s, node.Right, convertToString);
+        }
+        
+        public void ReBuildTree<TData, TKey>(RbTree<TData, TKey> tree, TreeView treeView, Func<RbTree<TData, TKey>.Node, string> convertToString)
+        {
+            treeView.BeginUpdate();
+            treeView.Nodes.Clear();
+            if (tree.Root != null)
+            {
+                var s = treeView.Nodes.Add(convertToString(tree.Root));
+                RecursivelyAddNodeToTheTree(s, tree.Root.Left, convertToString);
+                RecursivelyAddNodeToTheTree(s, tree.Root.Right, convertToString);
+            }
+
             treeView3.EndUpdate();
         }
 

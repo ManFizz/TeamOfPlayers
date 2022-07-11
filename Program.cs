@@ -85,7 +85,7 @@ namespace TeamOfPlayers
 
         public static bool RemoveData(Player data)
         {
-            var list = TreeTeamsByName.FindList(data.Name);
+            var list = TreeTeamsByName.Find(data.Name).GetList();
             if (list.Count > 0)
             {
                 var dialogResult = MessageBox.Show("В справочнике \"Игроки команд\" есть связанные записи. Они тоже будут удалены. Вы действительно хотите продолжить?", "Обнаружена связность", MessageBoxButtons.YesNo);
@@ -93,7 +93,7 @@ namespace TeamOfPlayers
                     return false;
             }
             foreach (var t in list)
-                RemoveData(t.Data);
+                RemoveData(t);
             
             if(ListPlayers.Remove(data) == false)
                 throw new Exception("Запись не найдена");
@@ -104,7 +104,7 @@ namespace TeamOfPlayers
 
             //Debug
             DisplayHashTable1.Rows.Remove(DisplayHashTable1.Rows.Find(htPos));
-            DebugForm.ReBuildTreePlayers(TreePlayers);
+            DebugForm.ReBuildTree(TreePlayers, DebugForm.treeView1, DebugForm.ConvertByDate);
             return true;
         }
 
@@ -119,8 +119,8 @@ namespace TeamOfPlayers
             
             //Debug
             DisplayHashTable2.Rows.Remove(DisplayHashTable2.Rows.Find(htPos));
-            DebugForm.ReBuildTreeTeams(TreeTeams);
-            DebugForm.ReBuildTreeTeamsByName(TreeTeamsByName);
+            DebugForm.ReBuildTree(TreeTeams, DebugForm.treeView2, DebugForm.ConvertByRole);
+            DebugForm.ReBuildTree(TreeTeamsByName, DebugForm.treeView3, DebugForm.ConvertByName);
         }
 
         public static void AddData(Player data)
@@ -129,7 +129,7 @@ namespace TeamOfPlayers
             TreePlayers.Add(data, data.Birthday);
             var htPos = HsTbPlayers.Add(data, data.Name);
             DebugForm.DebugAddRow(data, htPos);
-            DebugForm.ReBuildTreePlayers(TreePlayers);
+            DebugForm.ReBuildTree(TreePlayers, DebugForm.treeView1, DebugForm.ConvertByDate);
         }
 
         public static void AddData(TeamPlayer data)
@@ -140,8 +140,8 @@ namespace TeamOfPlayers
             TreeTeamsByName.Add(data, data.PlayerName);
 
             DebugForm.DebugAddRow(data, htPos);
-            DebugForm.ReBuildTreeTeams(TreeTeams);
-            DebugForm.ReBuildTreeTeamsByName(TreeTeamsByName);
+            DebugForm.ReBuildTree(TreeTeams, DebugForm.treeView2, DebugForm.ConvertByRole);
+            DebugForm.ReBuildTree(TreeTeamsByName, DebugForm.treeView3, DebugForm.ConvertByName);
         }
         
         public static void ClearData(bool playersClear, bool teamsClear)
@@ -155,7 +155,7 @@ namespace TeamOfPlayers
                 TreePlayers = new RbTree<Player, DateTime>();
                 //Debug
                 DisplayHashTable1.Rows.Clear();
-                DebugForm.ReBuildTreePlayers(TreePlayers);
+                DebugForm.ReBuildTree(TreePlayers, DebugForm.treeView1, DebugForm.ConvertByDate);
             }
 
             if (teamsClear)
@@ -168,13 +168,22 @@ namespace TeamOfPlayers
                 TreeTeamsByName = new RbTree<TeamPlayer, string>();
                 //Debug
                 DisplayHashTable2.Rows.Clear();
-                DebugForm.ReBuildTreeTeams(TreeTeams);
-                DebugForm.ReBuildTreeTeamsByName(TreeTeamsByName);
+                DebugForm.ReBuildTree(TreeTeams, DebugForm.treeView2, DebugForm.ConvertByRole);
+                DebugForm.ReBuildTree(TreeTeamsByName, DebugForm.treeView3, DebugForm.ConvertByName);
             }
         }
 
         public static int CompareKeys<TKey>(TKey key1, TKey key2)
         {
+            if (key1 is null && key2 is null)
+                return 0;
+            
+            if (key1 is null)
+                return -1;
+            
+            if (key2 is null)
+                return 1;
+            
             if ((key1 is DateTime && DateTime.Parse(key1.ToString()) < DateTime.Parse(key2.ToString()) ||
                  key1 is not DateTime && string.CompareOrdinal(key1.ToString(), key2.ToString()) < 0))
                 return -1;
@@ -184,6 +193,11 @@ namespace TeamOfPlayers
                 return 1;
 
             return 0;
+        }
+
+        public static bool CompareData<TData>(TData data1, TData data2)
+        {
+            return data1.Equals(data2);
         }
     }
 }

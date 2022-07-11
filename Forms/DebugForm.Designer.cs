@@ -66,6 +66,7 @@ namespace TeamOfPlayers.Forms
             this.DebugTabManager.Controls.Add(this.TabPageTreeTeams2);
             this.DebugTabManager.Controls.Add(this.TabPageHashTable);
             this.DebugTabManager.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.DebugTabManager.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
             this.DebugTabManager.Location = new System.Drawing.Point(0, 0);
             this.DebugTabManager.Name = "DebugTabManager";
             this.DebugTabManager.SelectedIndex = 0;
@@ -79,10 +80,10 @@ namespace TeamOfPlayers.Forms
             this.TabPageMain.Controls.Add(this.textBox1);
             this.TabPageMain.Controls.Add(this.GenerateButton);
             this.TabPageMain.Controls.Add(this.dataGridView3);
-            this.TabPageMain.Location = new System.Drawing.Point(4, 22);
+            this.TabPageMain.Location = new System.Drawing.Point(4, 24);
             this.TabPageMain.Margin = new System.Windows.Forms.Padding(8);
             this.TabPageMain.Name = "TabPageMain";
-            this.TabPageMain.Size = new System.Drawing.Size(826, 435);
+            this.TabPageMain.Size = new System.Drawing.Size(826, 433);
             this.TabPageMain.TabIndex = 2;
             this.TabPageMain.Text = "Main";
             this.TabPageMain.UseVisualStyleBackColor = true;
@@ -111,7 +112,7 @@ namespace TeamOfPlayers.Forms
             this.textBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.textBox1.Location = new System.Drawing.Point(36, 28);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(51, 20);
+            this.textBox1.Size = new System.Drawing.Size(51, 21);
             this.textBox1.TabIndex = 2;
             this.textBox1.Text = "1000";
             // 
@@ -132,7 +133,7 @@ namespace TeamOfPlayers.Forms
             this.dataGridView3.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView3.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.dataGridView3.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
-            this.dataGridView3.Location = new System.Drawing.Point(0, 65);
+            this.dataGridView3.Location = new System.Drawing.Point(0, 63);
             this.dataGridView3.Name = "dataGridView3";
             this.dataGridView3.ReadOnly = true;
             this.dataGridView3.RowHeadersVisible = false;
@@ -143,9 +144,9 @@ namespace TeamOfPlayers.Forms
             // TabPageTreePlayers
             // 
             this.TabPageTreePlayers.Controls.Add(this.treeView1);
-            this.TabPageTreePlayers.Location = new System.Drawing.Point(4, 22);
+            this.TabPageTreePlayers.Location = new System.Drawing.Point(4, 24);
             this.TabPageTreePlayers.Name = "TabPageTreePlayers";
-            this.TabPageTreePlayers.Size = new System.Drawing.Size(826, 435);
+            this.TabPageTreePlayers.Size = new System.Drawing.Size(826, 433);
             this.TabPageTreePlayers.TabIndex = 3;
             this.TabPageTreePlayers.Text = "TreePlayers";
             this.TabPageTreePlayers.UseVisualStyleBackColor = true;
@@ -155,16 +156,16 @@ namespace TeamOfPlayers.Forms
             this.treeView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeView1.Location = new System.Drawing.Point(0, 0);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(826, 435);
+            this.treeView1.Size = new System.Drawing.Size(826, 433);
             this.treeView1.TabIndex = 1;
             // 
             // TabPageTreeTeams
             // 
             this.TabPageTreeTeams.Controls.Add(this.treeView2);
-            this.TabPageTreeTeams.Location = new System.Drawing.Point(4, 22);
+            this.TabPageTreeTeams.Location = new System.Drawing.Point(4, 24);
             this.TabPageTreeTeams.Name = "TabPageTreeTeams";
             this.TabPageTreeTeams.Padding = new System.Windows.Forms.Padding(3);
-            this.TabPageTreeTeams.Size = new System.Drawing.Size(826, 435);
+            this.TabPageTreeTeams.Size = new System.Drawing.Size(826, 433);
             this.TabPageTreeTeams.TabIndex = 0;
             this.TabPageTreeTeams.Text = "TreeTeams";
             this.TabPageTreeTeams.UseVisualStyleBackColor = true;
@@ -172,17 +173,19 @@ namespace TeamOfPlayers.Forms
             // treeView2
             // 
             this.treeView2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.treeView2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
+            this.treeView2.Indent = 27;
             this.treeView2.Location = new System.Drawing.Point(3, 3);
             this.treeView2.Name = "treeView2";
-            this.treeView2.Size = new System.Drawing.Size(820, 429);
+            this.treeView2.Size = new System.Drawing.Size(820, 427);
             this.treeView2.TabIndex = 0;
             // 
             // TabPageTreeTeams2
             // 
             this.TabPageTreeTeams2.Controls.Add(this.treeView3);
-            this.TabPageTreeTeams2.Location = new System.Drawing.Point(4, 22);
+            this.TabPageTreeTeams2.Location = new System.Drawing.Point(4, 24);
             this.TabPageTreeTeams2.Name = "TabPageTreeTeams2";
-            this.TabPageTreeTeams2.Size = new System.Drawing.Size(826, 435);
+            this.TabPageTreeTeams2.Size = new System.Drawing.Size(826, 433);
             this.TabPageTreeTeams2.TabIndex = 4;
             this.TabPageTreeTeams2.Text = "TreeTeams2";
             this.TabPageTreeTeams2.UseVisualStyleBackColor = true;
@@ -192,17 +195,17 @@ namespace TeamOfPlayers.Forms
             this.treeView3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeView3.Location = new System.Drawing.Point(0, 0);
             this.treeView3.Name = "treeView3";
-            this.treeView3.Size = new System.Drawing.Size(826, 435);
+            this.treeView3.Size = new System.Drawing.Size(826, 433);
             this.treeView3.TabIndex = 1;
             // 
             // TabPageHashTable
             // 
             this.TabPageHashTable.Controls.Add(this.dataGridView1);
             this.TabPageHashTable.Controls.Add(this.dataGridView2);
-            this.TabPageHashTable.Location = new System.Drawing.Point(4, 22);
+            this.TabPageHashTable.Location = new System.Drawing.Point(4, 24);
             this.TabPageHashTable.Name = "TabPageHashTable";
             this.TabPageHashTable.Padding = new System.Windows.Forms.Padding(3);
-            this.TabPageHashTable.Size = new System.Drawing.Size(826, 435);
+            this.TabPageHashTable.Size = new System.Drawing.Size(826, 433);
             this.TabPageHashTable.TabIndex = 1;
             this.TabPageHashTable.Text = "HashTable";
             this.TabPageHashTable.UseVisualStyleBackColor = true;
@@ -221,7 +224,7 @@ namespace TeamOfPlayers.Forms
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.RowHeadersVisible = false;
-            this.dataGridView1.Size = new System.Drawing.Size(400, 429);
+            this.dataGridView1.Size = new System.Drawing.Size(400, 427);
             this.dataGridView1.TabIndex = 1;
             // 
             // dataGridView2
@@ -238,7 +241,7 @@ namespace TeamOfPlayers.Forms
             this.dataGridView2.Name = "dataGridView2";
             this.dataGridView2.ReadOnly = true;
             this.dataGridView2.RowHeadersVisible = false;
-            this.dataGridView2.Size = new System.Drawing.Size(400, 429);
+            this.dataGridView2.Size = new System.Drawing.Size(400, 427);
             this.dataGridView2.TabIndex = 0;
             // 
             // DebugForm
@@ -247,6 +250,8 @@ namespace TeamOfPlayers.Forms
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(834, 461);
             this.Controls.Add(this.DebugTabManager);
+            this.MaximumSize = new System.Drawing.Size(850, 500);
+            this.MinimumSize = new System.Drawing.Size(850, 500);
             this.Name = "DebugForm";
             this.Text = "DebugForm";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.DebugForm_FormClosed);
@@ -277,14 +282,14 @@ namespace TeamOfPlayers.Forms
 
         public System.Windows.Forms.DataGridView dataGridView1;
 
-        private System.Windows.Forms.TreeView treeView1;
+        public System.Windows.Forms.TreeView treeView1;
 
-        private System.Windows.Forms.TreeView treeView2;
+        public System.Windows.Forms.TreeView treeView2;
 
         private System.Windows.Forms.TabPage TabPageTreePlayers;
         private System.Windows.Forms.TabPage TabPageTreeTeams2;
 
-        private System.Windows.Forms.TreeView treeView3;
+        public System.Windows.Forms.TreeView treeView3;
 
         private System.Windows.Forms.TabPage TabPageMain;
 

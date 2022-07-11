@@ -204,6 +204,18 @@ namespace TeamOfPlayers.Forms
                 MessageBox.Show("Некорректный ввод возраста","Кандидаты не найдены",  MessageBoxButtons.OK);
                 return;
             }
+            
+            if(age > 150)
+            {
+                MessageBox.Show("Значение возраста слишком большое","Кандидаты не найдены",  MessageBoxButtons.OK);
+                return;
+            }
+            
+            if(age <= 0)
+            {
+                MessageBox.Show("Значение возраста должно быть положительным","Кандидаты не найдены",  MessageBoxButtons.OK);
+                return;
+            }
 
             var role = textBoxRole2.Text;
             if(string.IsNullOrEmpty(role))
@@ -213,12 +225,11 @@ namespace TeamOfPlayers.Forms
             }
 
 
-            var table1 = Program.TreePlayers.FindAge(age, CalculateAge);
-            var nodeList = Program.TreeTeams.FindList(role);
+            var table1 = Program.TreePlayers.FindAge(age);
+            var nodeList = Program.TreeTeams.Find(role).GetList();
 
-            foreach (var node in nodeList)
+            foreach (var teamPlayer in nodeList)
             {
-                var teamPlayer = node.Data;
                 var player = table1.FirstOrDefault(p => p.Name == teamPlayer.PlayerName);
                 if(player == null)
                     continue;
@@ -238,15 +249,6 @@ namespace TeamOfPlayers.Forms
                 MessageBox.Show("Найдено " + _reportDisplay.Rows.Count + " кандидатов","Кандидаты найдены",  MessageBoxButtons.OK);
             else 
                 MessageBox.Show("Ни один игрок не подошел под заданные условия","Кандидаты не найдены",  MessageBoxButtons.OK);
-        }
-
-        private static int CalculateAge(DateTime dateOfBirth)
-        {
-            var age = DateTime.Now.Year - dateOfBirth.Year;
-            if (DateTime.Now.DayOfYear < dateOfBirth.DayOfYear)
-                age -= 1;
-
-            return age;
         }
 
         private void SavePlayersButton_Click(object sender, EventArgs e)

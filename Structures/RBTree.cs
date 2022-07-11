@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace TeamOfPlayers.Structures
@@ -10,21 +11,47 @@ namespace TeamOfPlayers.Structures
             Red = 0,
             Black
         }
-
+        
         public class Node
         {
-            public TData Data;
+            //public TData Data;
             public readonly TKey Key;
             public Color Color;
             public Node Left, Right, Parent;
 
-            public Node(TData player, TKey key) { Data = player; Key = key;}
+            public Node(TData player, TKey key) { Add(player); Key = key;}
             public Node(Color color) { Color = color; } 
             public Node(Node parent, Color color) { Parent = parent; Color = color; }
             
             public static implicit operator bool(Node x) { return x != null; }
 
-            public static implicit operator string(Node x) { return x.Data.ToString(); }
+            //Dynamic list
+            private readonly DataList<TData> _dataList = new DataList<TData>();
+
+            public void Add(TData data)
+            {
+                _dataList.Add(data);
+            }
+
+            public bool Remove(TData data)
+            {
+                return _dataList.Remove(data);
+            }
+            
+            public bool Contains(TData data)
+            {
+                return _dataList.Contains(data);
+            }
+
+            public List<TData> GetList()
+            {
+                return _dataList.GetList();
+            }
+
+            public bool Empty()
+            {
+                return _dataList.Empty();
+            }
         }
 
         public Node Root;
@@ -64,7 +91,7 @@ namespace TeamOfPlayers.Structures
         public void Add(TData item, TKey key)
         {
             var insertNode = new Node(item, key);
-            if (Root.Data == null)
+            if(Program.CompareKeys(Root.Key, default(TKey)) == 0)
             {
                 Root = insertNode;
                 Root.Parent = _sentinel;
@@ -80,8 +107,26 @@ namespace TeamOfPlayers.Structures
             while (x != _sentinel)
             {
                 parentX = x;
-                x = Program.CompareKeys(insertNode.Key, x.Key) < 0 ? x.Left : x.Right;
+                switch (Program.CompareKeys(insertNode.Key, x.Key))
+                {
+                    case -1:
+                    {
+                        x = x.Left;
+                        break;
+                    }
+                    case 0:
+                    {
+                        x.Add(item);
+                        return;
+                    }
+                    case 1:
+                    {
+                        x = x.Right;
+                        break;
+                    }
+                }
             }
+            
             insertNode.Parent = parentX;
             if (parentX == _sentinel)
                 Root = insertNode;
@@ -99,6 +144,7 @@ namespace TeamOfPlayers.Structures
 
         private void InsertFixUp(Node z)
         {
+            var saveDebug = z.Key;
             var debugCounter = 0;
             while (z != Root && z.Parent.Color == Color.Red)
             {
@@ -152,7 +198,7 @@ namespace TeamOfPlayers.Structures
                 }
             }
             Root.Color = Color.Black;
-            Program.DebugForm.WriteLine("Вставка в дерево. -Поворотов", debugCounter);
+            Program.DebugForm.WriteLine("Вставка в дерево по ключу <" + saveDebug + ">. -Поворотов", debugCounter);
         }
 
         #endregion
@@ -206,24 +252,16 @@ namespace TeamOfPlayers.Structures
 
         public bool Remove(TData data, TKey key)
         {
-            var debugCounter = 0;
-            var listNode = FindList(key);
-            foreach (var node in listNode)
-            {
-                debugCounter++;
-                if (node == _sentinel)
-                    continue;
-                debugCounter++;
-                if (node.Data.GetHashCode() != data.GetHashCode())
-                    continue;
-                
-                Remove(node);
-                Program.DebugForm.WriteLine("Удаление из дерева. -Сравнений", debugCounter);
-                return true;
-            }
+            var node = Find(key);
 
-            Program.DebugForm.WriteLine("Удаление из дерева. -Сравнений", debugCounter);
-            return false;
+            if (!node.Remove(data))
+                return false;
+            
+            if (node.Empty())
+                    Remove(node);
+            
+            return true;
+
         }
 
         public bool Remove(TKey key)
@@ -302,6 +340,7 @@ namespace TeamOfPlayers.Structures
 
         private void DeleteFixUp(Node x)
         {
+            var saveDebug = x.Key;
             var debugCounter = 0;
             while (x != Root && x.Color == Color.Black)
             {
@@ -377,16 +416,18 @@ namespace TeamOfPlayers.Structures
                 }
             }
             x.Color = Color.Black;
-            Program.DebugForm.WriteLine("Удаление из дерева. -Поворотов", debugCounter);
+            Program.DebugForm.WriteLine("Удаление из дерева по ключу <" + saveDebug + ">. -Поворотов", debugCounter);
         }
 
         #endregion
 
-        public List<TData> FindAge(int age, Func<TKey, int> f)
+        public List<TData> FindAge(int age)
         {
             if(Root.Key is not DateTime)
                 throw new Exception("Функция не предназначена для работы с этим типом ключа");
 
+            var Bottom = DateTime.ParseExact(DateTime.Now.ToString("dd.MM") + "." + (DateTime.Now.Year - age - 1), "dd.MM.yyyy", System.Globalization.CultureInfo.InvariantCulture);
+            var Top = Bottom.AddYears(1);
             var outList = new List<TData>();
             var nodeList = new List<Node> {Root};
             var debugCounter = 0;
@@ -395,32 +436,37 @@ namespace TeamOfPlayers.Structures
                 var temp = nodeList[nodeList.Count - 1];
                 nodeList.Remove(temp);
                 debugCounter++;
-                if(temp == _sentinel)
+                if(temp == null || temp.Key == null)
                     continue;
-                
+
+                var key = DateTime.Parse(temp.Key.ToString());
                 debugCounter++;
-                var tempAge = f(temp.Key);
+                /*var tempAge = f(temp.Key);
                 if (tempAge < age)
                     nodeList.Add(temp.Left);
                 else if (tempAge > age)
                 {
                     nodeList.Add(temp.Right);
                     debugCounter++;
-                }
-                else if (tempAge == age)
+                }*/
+                if(key > Top)
+                    nodeList.Add(temp.Left);
+                else if(key < Bottom)
+                    nodeList.Add(temp.Right);
+                else
                 {
-                    outList.Add(temp.Data);
+                    outList.AddRange(temp.GetList());
                     nodeList.Add(temp.Left);
                     nodeList.Add(temp.Right);
                     debugCounter++;
                 }
             }
 
-            Program.DebugForm.WriteLine("Поиск игроков по возрасту, дерево. -Сравнений", debugCounter);
+            Program.DebugForm.WriteLine("Поиск игроков по возрасту в дереве по ключу <" + age + ">. -Сравнений", debugCounter);
             return outList;
         }
 
-        public List<Node> FindList(TKey key)
+        /*public List<Node> FindList(TKey key)
         {
             var list = new List<Node>();
             var nodes = new List<Node> {Root};
@@ -451,22 +497,22 @@ namespace TeamOfPlayers.Structures
 
             Program.DebugForm.WriteLine("Поиск игрока по ключу в дереве. -Сравнений", debugCounter);
             return list;
-        }
+        }*/
 
-        private Node Find(TKey key)
+        public Node Find(TKey key)
         {
             var temp = Root;
             var debugCounter = 0;
-            while (temp != _sentinel)
+            while (temp.Key != null)
             {
-                debugCounter+=3;
+                debugCounter++;
                 if (Program.CompareKeys(key, temp.Key) < 0)
                     temp = temp.Left;
 
-                if (Program.CompareKeys(key, temp.Key) > 0)
+                else if (Program.CompareKeys(key, temp.Key) > 0)
                     temp = temp.Right;
 
-                if (Program.CompareKeys(key, temp.Key) == 0)
+                else if (Program.CompareKeys(key, temp.Key) == 0)
                     return temp;
             }
 
