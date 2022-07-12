@@ -18,5 +18,12 @@ namespace TeamOfPlayers.Structures
             Birthday = birthday;
             SportTypes = sportTypes;
         }
+
+        public Player(Player data)
+        {
+            Name = data.Name;
+            Birthday = data.Birthday;
+            SportTypes = new List<string>(data.SportTypes);
+        }
     }
 }

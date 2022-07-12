@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace TeamOfPlayers.Structures
@@ -14,19 +13,28 @@ namespace TeamOfPlayers.Structures
         
         public class Node
         {
-            //public TData Data;
             public readonly TKey Key;
             public Color Color;
             public Node Left, Right, Parent;
 
-            public Node(TData player, TKey key) { Add(player); Key = key;}
-            public Node(Color color) { Color = color; } 
-            public Node(Node parent, Color color) { Parent = parent; Color = color; }
+            public Node(TData player, TKey key, Func<TData, TData, bool> func) { 
+                _dataList = new DataList<TData>(func);
+                Add(player); 
+                Key = key;
+            }
+            public Node(Color color, Func<TData, TData, bool> func)
+            {
+                _dataList = new DataList<TData>(func);
+                Color = color;
+            }
+            public Node(Node parent, Color color, Func<TData, TData, bool> func) { Parent = parent; Color = color;
+                _dataList = new DataList<TData>(func);
+            }
             
             public static implicit operator bool(Node x) { return x != null; }
 
             //Dynamic list
-            private readonly DataList<TData> _dataList = new DataList<TData>();
+            private readonly DataList<TData> _dataList;
 
             public void Add(TData data)
             {
@@ -55,13 +63,16 @@ namespace TeamOfPlayers.Structures
         }
 
         public Node Root;
+        private Node _sentinel;
+        private readonly Func<TKey, TKey, int> _compareKeys;
+        private readonly Func<TData, TData, bool> _equalData;
 
-        private static Node _sentinel;
-
-        public RbTree()
+        public RbTree(Func<TKey, TKey, int> func,Func<TData, TData, bool> funcData)
         {
-            Root = new Node(Color.Black);
-            _sentinel = new Node(Root, Color.Black);
+            _compareKeys = func;
+            _equalData = funcData;
+            Root = new Node(Color.Black, _equalData);
+            _sentinel = new Node(Root, Color.Black, _equalData);
             Root.Parent = _sentinel;
             Root.Left = Root.Right = _sentinel;
         }
@@ -90,14 +101,17 @@ namespace TeamOfPlayers.Structures
 
         public void Add(TData item, TKey key)
         {
-            var insertNode = new Node(item, key);
-            if(Program.CompareKeys(Root.Key, default(TKey)) == 0)
+            var insertNode = new Node(item, key, _equalData);
+            if(_compareKeys(Root.Key, default) == 0)
             {
                 Root = insertNode;
                 Root.Parent = _sentinel;
                 Root.Left = _sentinel;
                 Root.Right = _sentinel;
                 Root.Color = Color.Black;
+                _sentinel.Left = Root;
+                _sentinel.Right = Root;
+                _sentinel.Parent = Root;
                 return;
             }
 
@@ -107,9 +121,9 @@ namespace TeamOfPlayers.Structures
             while (x != _sentinel)
             {
                 parentX = x;
-                switch (Program.CompareKeys(insertNode.Key, x.Key))
+                switch (_compareKeys(insertNode.Key, x.Key))
                 {
-                    case -1:
+                    case < 0:
                     {
                         x = x.Left;
                         break;
@@ -119,7 +133,7 @@ namespace TeamOfPlayers.Structures
                         x.Add(item);
                         return;
                     }
-                    case 1:
+                    case > 0:
                     {
                         x = x.Right;
                         break;
@@ -130,7 +144,7 @@ namespace TeamOfPlayers.Structures
             insertNode.Parent = parentX;
             if (parentX == _sentinel)
                 Root = insertNode;
-            else if(Program.CompareKeys(insertNode.Key, parentX.Key) < 0)  
+            else if(_compareKeys(insertNode.Key, parentX.Key) < 0)  
                 parentX.Left = insertNode;
             else
                 parentX.Right = insertNode;
@@ -274,7 +288,7 @@ namespace TeamOfPlayers.Structures
             return true;
         }
 
-        private static Node Minimum(Node x)
+        private Node Minimum(Node x)
         {
             var y = _sentinel;
             var debugCounter = 0;
@@ -426,8 +440,8 @@ namespace TeamOfPlayers.Structures
             if(Root.Key is not DateTime)
                 throw new Exception("Функция не предназначена для работы с этим типом ключа");
 
-            var Bottom = DateTime.ParseExact(DateTime.Now.ToString("dd.MM") + "." + (DateTime.Now.Year - age - 1), "dd.MM.yyyy", System.Globalization.CultureInfo.InvariantCulture);
-            var Top = Bottom.AddYears(1);
+            var bottom = DateTime.ParseExact(DateTime.Now.ToString("dd.MM") + "." + (DateTime.Now.Year - age - 1), "dd.MM.yyyy", System.Globalization.CultureInfo.InvariantCulture);
+            var top = bottom.AddYears(1);
             var outList = new List<TData>();
             var nodeList = new List<Node> {Root};
             var debugCounter = 0;
@@ -436,22 +450,15 @@ namespace TeamOfPlayers.Structures
                 var temp = nodeList[nodeList.Count - 1];
                 nodeList.Remove(temp);
                 debugCounter++;
-                if(temp == null || temp.Key == null)
+                if(temp == _sentinel || temp == null || temp.Key == null)
                     continue;
 
                 var key = DateTime.Parse(temp.Key.ToString());
                 debugCounter++;
-                /*var tempAge = f(temp.Key);
-                if (tempAge < age)
+                
+                if(key > top)
                     nodeList.Add(temp.Left);
-                else if (tempAge > age)
-                {
-                    nodeList.Add(temp.Right);
-                    debugCounter++;
-                }*/
-                if(key > Top)
-                    nodeList.Add(temp.Left);
-                else if(key < Bottom)
+                else if(key < bottom)
                     nodeList.Add(temp.Right);
                 else
                 {
@@ -466,39 +473,6 @@ namespace TeamOfPlayers.Structures
             return outList;
         }
 
-        /*public List<Node> FindList(TKey key)
-        {
-            var list = new List<Node>();
-            var nodes = new List<Node> {Root};
-            var debugCounter = 0;
-            while (nodes.Count != 0)
-            {
-                var temp = nodes[nodes.Count - 1];
-                nodes.RemoveAt(nodes.Count-1);
-                debugCounter++;
-                if (temp == _sentinel)
-                    continue;
-                debugCounter++;
-                if (Program.CompareKeys(key, temp.Key) < 0)
-                    nodes.Add(temp.Left);
-                else if (Program.CompareKeys(key, temp.Key) > 0)
-                {
-                    nodes.Add(temp.Right);
-                    debugCounter++;
-                }
-                else
-                {
-                    list.Add(temp);
-                    nodes.Add(temp.Left);
-                    nodes.Add(temp.Right);
-                    debugCounter++;
-                }
-            }
-
-            Program.DebugForm.WriteLine("Поиск игрока по ключу в дереве. -Сравнений", debugCounter);
-            return list;
-        }*/
-
         public Node Find(TKey key)
         {
             var temp = Root;
@@ -506,13 +480,12 @@ namespace TeamOfPlayers.Structures
             while (temp.Key != null)
             {
                 debugCounter++;
-                if (Program.CompareKeys(key, temp.Key) < 0)
+                var result = _compareKeys(key, temp.Key);
+                if (result < 0)
                     temp = temp.Left;
-
-                else if (Program.CompareKeys(key, temp.Key) > 0)
+                else if (result > 0)
                     temp = temp.Right;
-
-                else if (Program.CompareKeys(key, temp.Key) == 0)
+                else 
                     return temp;
             }
 

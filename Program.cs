@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using TeamOfPlayers.Forms;
 using TeamOfPlayers.Structures;
@@ -16,28 +16,26 @@ namespace TeamOfPlayers
         public static List<TeamPlayer> ListTeams = new ();
         
         //Деревья для общей задачи поиска
-        public static RbTree<Player, DateTime> TreePlayers = new ();
-        public static RbTree<TeamPlayer, string> TreeTeams = new ();
+        public static RbTree<Player, DateTime> TreePlayers = new (CompareDateTime, EqualsData);
+        public static RbTree<TeamPlayer, string> TreeTeams = new (CompareString, EqualsData);
         
         //Хеш-таблицы для проверки уникальности
         public static HashTable<Player> HsTbPlayers = new () {
-            OnResize = DebugForm.OnResizeHashTablePlayers
+            OnResize = DebugForm.UpdateHashTablePlayers
         };
         public static HashTable<TeamPlayer> HsTbTeams = new() {
-            OnResize = DebugForm.OnResizeHashTableTeams
+            OnResize = DebugForm.UpdateHashTableTeams
         };
         
         //Дерево для поиска игрока команды, при удалении самого игрока
-        public static RbTree<TeamPlayer, string> TreeTeamsByName = new ();
+        private static RbTree<TeamPlayer, string> _treeTeamsByName = new (CompareString, EqualsData);
 
         public static DebugForm DebugForm;
-        public static readonly DataTable DisplayHashTable1 = new ();
-        public static readonly DataTable DisplayHashTable2 = new ();
 
         public static MainForm MainForm;
 
-        private static string PathPlayers { get; } = "Players.txt";
-        private static string PathTeams { get; } = "TeamPlayers.txt";
+        private const string PathPlayers = "Players.txt";
+        private const string PathTeams = "TeamPlayers.txt";
 
         [STAThread]
         private static void Main()
@@ -46,24 +44,6 @@ namespace TeamOfPlayers
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var t = DisplayHashTable1.Columns.Add("pos");
-            t.DataType = typeof(int);
-            t.Unique = true;
-            DisplayHashTable1.PrimaryKey = new [] {t};
-            DisplayHashTable1.Columns.Add("ФИО");
-            t = DisplayHashTable1.Columns.Add("Дата рождения");
-            t.DataType = typeof(DateTime);
-            t.DateTimeMode = DataSetDateTime.Utc;
-            DisplayHashTable1.Columns.Add("Виды спорта");
-            
-            t = DisplayHashTable2.Columns.Add("pos");
-            t.DataType = typeof(int);
-            t.Unique = true;
-            DisplayHashTable2.PrimaryKey = new [] {t};
-            DisplayHashTable2.Columns.Add("ФИО");
-            DisplayHashTable2.Columns.Add("Команда");
-            DisplayHashTable2.Columns.Add("Роль");
-            DisplayHashTable2.Columns.Add("Вид спорта");
             
             DebugForm = new DebugForm();
             if(File.Exists(PathPlayers))
@@ -76,16 +56,13 @@ namespace TeamOfPlayers
             else if(MessageBox.Show("Не обнаружен файл \"" + PathTeams + "\". Сгенерировать случайные данные игроков команд?", "Заполнение данными", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 GenerateData.GenerateTeamDataBase();
 
-            
-            DebugForm.dataGridView1.DataSource = DisplayHashTable1;
-            DebugForm.dataGridView2.DataSource = DisplayHashTable2;
-            
             Application.Run(MainForm = new MainForm());
         }
 
-        public static bool RemoveData(Player data)
+        public static bool RemoveData(Player dataLink)
         {
-            var list = TreeTeamsByName.Find(data.Name).GetList();
+            var data = new Player(dataLink);
+            var list = _treeTeamsByName.Find(data.Name).GetList();
             if (list.Count > 0)
             {
                 var dialogResult = MessageBox.Show("В справочнике \"Игроки команд\" есть связанные записи. Они тоже будут удалены. Вы действительно хотите продолжить?", "Обнаружена связность", MessageBoxButtons.YesNo);
@@ -95,40 +72,45 @@ namespace TeamOfPlayers
             foreach (var t in list)
                 RemoveData(t);
             
-            if(ListPlayers.Remove(data) == false)
+            if(ListPlayers.Remove(dataLink) == false)
                 throw new Exception("Запись не найдена");
             
-            TreePlayers.Remove(data, data.Birthday);
-            var htPos = HsTbPlayers.Remove(data, data.Name);
-
-
+            if(TreePlayers.Remove(data, data.Birthday) == false)
+                MessageBox.Show("Не удалось удалить из дерева игроков (общая задача поиска)", "Ошибка???", MessageBoxButtons.OK);
+            if(HsTbPlayers.Remove(data, data.Name) == -1)
+                MessageBox.Show("Не удалось удалить из хеш-таблицы игроков (проверка уникальности)", "Ошибка???", MessageBoxButtons.OK);
+            
             //Debug
-            DisplayHashTable1.Rows.Remove(DisplayHashTable1.Rows.Find(htPos));
+            DebugForm.UpdateHashTablePlayers();
             DebugForm.ReBuildTree(TreePlayers, DebugForm.treeView1, DebugForm.ConvertByDate);
             return true;
         }
 
-        public static void RemoveData(TeamPlayer data)
+        public static void RemoveData(TeamPlayer dataLink)
         {
-            if (!ListTeams.Remove(data))
+            var data = new TeamPlayer(dataLink);
+            if (!ListTeams.Remove(dataLink))
                 throw new Exception("Запись не найдена");
             
-            TreeTeams.Remove(data, data.Role);
-            var htPos  =  HsTbTeams.Remove(data, data.PlayerName + data.TeamName);
-            TreeTeamsByName.Remove(data, data.PlayerName);
+            if(TreeTeams.Remove(data, data.Role) == false)
+                MessageBox.Show("Не удалось удалить из дерева команд (общая задача поиска)", "Ошибка???", MessageBoxButtons.OK);
+            if(HsTbTeams.Remove(data, data.PlayerName + data.TeamName) == -1)
+                MessageBox.Show("Не удалось удалить из хеш-таблицы команд (проверка уникальности)", "Ошибка???", MessageBoxButtons.OK);
+            if(_treeTeamsByName.Remove(data, data.PlayerName) == false)
+                MessageBox.Show("Не удалось удалить из дерева команд (для связанного удаления)", "Ошибка???", MessageBoxButtons.OK);
             
             //Debug
-            DisplayHashTable2.Rows.Remove(DisplayHashTable2.Rows.Find(htPos));
+            DebugForm.UpdateHashTableTeams();
             DebugForm.ReBuildTree(TreeTeams, DebugForm.treeView2, DebugForm.ConvertByRole);
-            DebugForm.ReBuildTree(TreeTeamsByName, DebugForm.treeView3, DebugForm.ConvertByName);
+            DebugForm.ReBuildTree(_treeTeamsByName, DebugForm.treeView3, DebugForm.ConvertByName);
         }
 
         public static void AddData(Player data)
         {
             ListPlayers.Add(data);
             TreePlayers.Add(data, data.Birthday);
-            var htPos = HsTbPlayers.Add(data, data.Name);
-            DebugForm.DebugAddRow(data, htPos);
+            HsTbPlayers.Add(data, data.Name);
+            DebugForm.UpdateHashTablePlayers();
             DebugForm.ReBuildTree(TreePlayers, DebugForm.treeView1, DebugForm.ConvertByDate);
         }
 
@@ -136,12 +118,12 @@ namespace TeamOfPlayers
         {
             ListTeams.Add(data);
             TreeTeams.Add(data, data.Role);
-            var htPos = HsTbTeams.Add(data, data.PlayerName + data.TeamName);
-            TreeTeamsByName.Add(data, data.PlayerName);
+            HsTbTeams.Add(data, data.PlayerName + data.TeamName);
+            _treeTeamsByName.Add(data, data.PlayerName);
 
-            DebugForm.DebugAddRow(data, htPos);
+            DebugForm.UpdateHashTableTeams();
             DebugForm.ReBuildTree(TreeTeams, DebugForm.treeView2, DebugForm.ConvertByRole);
-            DebugForm.ReBuildTree(TreeTeamsByName, DebugForm.treeView3, DebugForm.ConvertByName);
+            DebugForm.ReBuildTree(_treeTeamsByName, DebugForm.treeView3, DebugForm.ConvertByName);
         }
         
         public static void ClearData(bool playersClear, bool teamsClear)
@@ -150,54 +132,44 @@ namespace TeamOfPlayers
             {
                 ListPlayers = new List<Player>();
                 HsTbPlayers = new HashTable<Player> {
-                    OnResize = DebugForm.OnResizeHashTablePlayers //Debug
+                    OnResize = DebugForm.UpdateHashTablePlayers //Debug
                 };
-                TreePlayers = new RbTree<Player, DateTime>();
+                TreePlayers = new RbTree<Player, DateTime>(CompareDateTime, EqualsData);
                 //Debug
-                DisplayHashTable1.Rows.Clear();
+                DebugForm.UpdateHashTablePlayers();
                 DebugForm.ReBuildTree(TreePlayers, DebugForm.treeView1, DebugForm.ConvertByDate);
             }
 
             if (teamsClear)
             {
-                TreeTeams = new RbTree<TeamPlayer, string>();
+                TreeTeams = new RbTree<TeamPlayer, string>(CompareString, EqualsData);
                 ListTeams = new List<TeamPlayer>();
                 HsTbTeams = new HashTable<TeamPlayer>() {
-                    OnResize = DebugForm.OnResizeHashTableTeams//Debug
+                    OnResize = DebugForm.UpdateHashTableTeams//Debug
                 };
-                TreeTeamsByName = new RbTree<TeamPlayer, string>();
+                _treeTeamsByName = new RbTree<TeamPlayer, string>(CompareString, EqualsData);
                 //Debug
-                DisplayHashTable2.Rows.Clear();
+                DebugForm.UpdateHashTableTeams();
                 DebugForm.ReBuildTree(TreeTeams, DebugForm.treeView2, DebugForm.ConvertByRole);
-                DebugForm.ReBuildTree(TreeTeamsByName, DebugForm.treeView3, DebugForm.ConvertByName);
+                DebugForm.ReBuildTree(_treeTeamsByName, DebugForm.treeView3, DebugForm.ConvertByName);
             }
         }
 
-        public static int CompareKeys<TKey>(TKey key1, TKey key2)
+        private static int CompareDateTime(DateTime data1, DateTime data2) => data1.CompareTo(data2); 
+
+        private static int CompareString(string data1, string data2) => string.Compare(data1, data2, StringComparison.Ordinal);
+        
+        //public static bool CompareData<TData>(TData data1, TData data2) => data1.Equals(data2);
+        private static bool EqualsData(Player data1, Player data2)
         {
-            if (key1 is null && key2 is null)
-                return 0;
-            
-            if (key1 is null)
-                return -1;
-            
-            if (key2 is null)
-                return 1;
-            
-            if ((key1 is DateTime && DateTime.Parse(key1.ToString()) < DateTime.Parse(key2.ToString()) ||
-                 key1 is not DateTime && string.CompareOrdinal(key1.ToString(), key2.ToString()) < 0))
-                return -1;
-
-            if ((key1 is DateTime && DateTime.Parse(key1.ToString()) > DateTime.Parse(key2.ToString()) ||
-                 key1 is not DateTime && string.CompareOrdinal(key1.ToString(), key2.ToString()) > 0))
-                return 1;
-
-            return 0;
+            if (data1.Birthday == data2.Birthday && data1.Name == data2.Name)
+                return !data1.SportTypes.Where((t, i) => t != data2.SportTypes[i]).Any();
+            return false;
         }
-
-        public static bool CompareData<TData>(TData data1, TData data2)
+        private static bool EqualsData(TeamPlayer data1, TeamPlayer data2)
         {
-            return data1.Equals(data2);
+            return data1.PlayerName == data2.PlayerName && data1.TeamName == data2.TeamName && data1.Role == data2.Role && data1.SportType == data2.SportType;
         }
+        
     }
 }

@@ -17,5 +17,13 @@
             Role = role;
             SportType = sportType;
         }
+
+        public TeamPlayer(TeamPlayer data)
+        {
+            PlayerName = data.PlayerName;
+            TeamName = data.TeamName;
+            Role = data.Role;
+            SportType = data.SportType;
+        }
     }
 }

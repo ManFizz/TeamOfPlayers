@@ -59,7 +59,7 @@ namespace TeamOfPlayers.Structures
                 ArrStatus[i] = null;
         }
 
-        private void Recalc()
+        private void TryRecalc()
         {
             var oldSize = _size;
             if (_capacity >= 0.75 * _size)
@@ -109,19 +109,18 @@ namespace TeamOfPlayers.Structures
 
         public int GetPos(string key)
         {
-            var pos = -1;
-            return GetPos(key, ref pos);
+            return GetPos(key, out _);
         }
 
-        private int GetPos(string key, ref int pos)
+        private int GetPos(string key, out int pos)
         {
-            var attempt = 0;
+            ushort attempt = 0;
             do
             {
                 pos = GetHash(key, attempt);
                 attempt++;
 
-                if (ArrStatus[pos] != CellStatus.Filled || Program.CompareKeys(Arr[pos].Key,key) != 0)
+                if (ArrStatus[pos] != CellStatus.Filled || string.Compare(Arr[pos].Key, key, StringComparison.Ordinal) != 0)
                     continue;
                 
                 Program.DebugForm.WriteLine("Взятие хеша по ключу <" + key +"> : позиция = " + pos + ". -Попыток", attempt);
@@ -135,7 +134,6 @@ namespace TeamOfPlayers.Structures
 
         public int Remove(T data, string key)
         {
-
             return Remove(new Node(data,key));
         }
 
@@ -144,10 +142,10 @@ namespace TeamOfPlayers.Structures
             var pos = GetPos(data.Key);
             if (pos == -1)
                 return pos;
-
+            
             ArrStatus[pos] = CellStatus.Deleted;
             _capacity--;
-            Recalc();
+            TryRecalc();
 
             return pos;
         }
@@ -159,21 +157,21 @@ namespace TeamOfPlayers.Structures
 
         private int Add(Node data)
         {
-            var pos = -1;
-            var k = GetPos(data.Key, ref pos);
+            var k = GetPos(data.Key, out var pos);
             if (k != -1)
                 return -1;
 
             Arr[pos] = data;
             ArrStatus[pos] = CellStatus.Filled;
             _capacity++;
-            Recalc();
+            TryRecalc();
             return pos;
         }
 
-        private int GetFreeHash(string key, ref int attempt)
+        private int GetFreeHash(string key)
         {
             int pos;
+            ushort attempt = 0;
             do
             {
                 pos = GetHash(key, attempt);
@@ -184,13 +182,7 @@ namespace TeamOfPlayers.Structures
             return pos;
         }
 
-        private int GetFreeHash(string key)
-        {
-            var attempt = 0;
-            return GetFreeHash(key, ref attempt);
-        }
-
-        private int GetHash(string data, int attempt = 0)
+        public int GetHash(string data, ushort attempt = 0)
         {
             var k = _size/ (_size % 10) - 1;
             if (k <= 0) k = 1;

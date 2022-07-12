@@ -8,8 +8,12 @@ using TeamOfPlayers.Utilities;
 
 namespace TeamOfPlayers.Forms
 {
+    
     public partial class DebugForm : Form
     {
+        private static readonly DataTable DisplayHashTable1 = new ();
+        private static readonly DataTable DisplayHashTable2 = new ();
+        
         private readonly DataTable _eventTable = new();
         public DebugForm()
         {
@@ -25,133 +29,77 @@ namespace TeamOfPlayers.Forms
             dataGridView3.DataSource = _eventTable;
             dataGridView3.Columns[1].Width = 656;
             dataGridView3.Columns[2].Width = 50;
+            
+            
+            t = DisplayHashTable1.Columns.Add("hash");
+            t.DataType = typeof(int);
+            t.Unique = true;
+            DisplayHashTable1.PrimaryKey = new [] {t};
+            DisplayHashTable1.Columns.Add("first");
+            DisplayHashTable1.Columns.Add("ФИО");
+            t = DisplayHashTable1.Columns.Add("Дата рождения");
+            t.DataType = typeof(DateTime);
+            t.DateTimeMode = DataSetDateTime.Utc;
+            DisplayHashTable1.Columns.Add("Виды спорта");
+            
+            t = DisplayHashTable2.Columns.Add("hash");
+            t.DataType = typeof(int);
+            t.Unique = true;
+            DisplayHashTable2.PrimaryKey = new [] {t};
+            DisplayHashTable2.Columns.Add("first");
+            DisplayHashTable2.Columns.Add("ФИО");
+            DisplayHashTable2.Columns.Add("Команда");
+            DisplayHashTable2.Columns.Add("Роль");
+            DisplayHashTable2.Columns.Add("Вид спорта");
+            
+            dataGridView1.DataSource = DisplayHashTable1;
+            dataGridView2.DataSource = DisplayHashTable2;
         }
         
-        public static void DebugAddRow(Player data, int htPos)
+        private static void DebugAddRow(Player data, int htPos)
         {
-            if (Program.DisplayHashTable1.Rows.Find(htPos) != null)
+            if (DisplayHashTable1.Rows.Find(htPos) != null)
                 return; //Произошел ReHash, вставка не требуется
             
-            var newRow = Program.DisplayHashTable1.NewRow();
-            newRow["pos"] = htPos;
+            var newRow = DisplayHashTable1.NewRow();
+            newRow["hash"] = htPos;
+            newRow["first"] = Program.HsTbPlayers.GetHash(data.Name);
             newRow["ФИО"] = data.Name;
             newRow["Дата рождения"] = data.Birthday;
             newRow["Виды спорта"] = data.SportTypes.Aggregate("", (current, c) => current + (", " + c)).Remove(0, 2);
-            Program.DisplayHashTable1.Rows.Add(newRow);
+            DisplayHashTable1.Rows.Add(newRow);
         }
         
-        public static void DebugAddRow(TeamPlayer data, int htPos)
+        private static void DebugAddRow(TeamPlayer data, int htPos)
         {
-            if (Program.DisplayHashTable2.Rows.Find(htPos) != null)
+            if (DisplayHashTable2.Rows.Find(htPos) != null)
                 return; //Произошел ReHash, вставка не требуется
             
-            var newRow = Program.DisplayHashTable2.NewRow();
-            newRow["pos"] = htPos;
+            var newRow = DisplayHashTable2.NewRow();
+            newRow["hash"] = htPos;
+            newRow["first"] = Program.HsTbTeams.GetHash(data.PlayerName+data.TeamName);
             newRow["ФИО"] = data.PlayerName;
             newRow["Команда"] = data.TeamName;
             newRow["Роль"] = data.Role;
             newRow["Вид спорта"] = data.SportType;
-            Program.DisplayHashTable2.Rows.Add(newRow);
+            DisplayHashTable2.Rows.Add(newRow);
         }
         
-        public static void OnResizeHashTablePlayers()
+        public static void UpdateHashTablePlayers()
         {
-            Program.DisplayHashTable1.Rows.Clear();
+            DisplayHashTable1.Rows.Clear();
             for(var i = 0; i < Program.HsTbPlayers.ArrStatus.Length; i++)
                 if(Program.HsTbPlayers.ArrStatus[i] == HashTable<Player>.CellStatus.Filled)
                     DebugAddRow(Program.HsTbPlayers.Arr[i].Data, i);
         }
         
-        public static void OnResizeHashTableTeams()
+        public static void UpdateHashTableTeams()
         {
-            Program.DisplayHashTable2.Rows.Clear();
+            DisplayHashTable2.Rows.Clear();
             for(var i = 0; i < Program.HsTbTeams.ArrStatus.Length; i++)
                 if(Program.HsTbTeams.ArrStatus[i] == HashTable<TeamPlayer>.CellStatus.Filled)
                     DebugAddRow(Program.HsTbTeams.Arr[i].Data, i);
         }
-
-        /*private static void SetNodeChildPlayer(TreeNode parent, RbTree<Player, DateTime>.Node node)
-        {
-            if (node?.Data == null)
-                return;
-            
-            var displayNode = parent.Nodes.Add(node.Data.Birthday.ToString("dd.MM.yyyy") + " \\ " + node.Data.Name);
-            if(node.Color is RbTree<Player, DateTime>.Color.Red)
-                displayNode.ForeColor = Color.Brown;
-            
-            SetNodeChildPlayer(displayNode, node.Left);
-            SetNodeChildPlayer(displayNode, node.Right);
-            
-        }
-        public void ReBuildTreePlayers(RbTree<Player, DateTime> treePlayers)
-        {
-            treeView1.BeginUpdate();
-            treeView1.Nodes.Clear();
-            if (treePlayers.Root != null)
-            {
-                var s = treeView1.Nodes.Add(treePlayers.Root.Data.Birthday.ToString("dd.MM.yyyy") + " \\ " + treePlayers.Root.Data.Name);
-                SetNodeChildPlayer(s, treePlayers.Root.Left);
-                SetNodeChildPlayer(s, treePlayers.Root.Right);
-            }
-
-            treeView1.EndUpdate();
-        }
-        
-        
-        private static void SetNodeChildTeam(TreeNode parent, RbTree<TeamPlayer, string>.Node node)
-        {
-            if (node?.Data == null)
-                return;
-            
-            var displayNode = parent.Nodes.Add(node.Data.Role + " \\ " + node.Data.PlayerName  +  " \\ " + node.Data.TeamName);
-            if(node.Color is RbTree<TeamPlayer, string>.Color.Red)
-                displayNode.ForeColor = Color.Brown;
-            
-            SetNodeChildTeam(displayNode, node.Left);
-            SetNodeChildTeam(displayNode, node.Right);
-        }
-        
-        public void ReBuildTreeTeams(RbTree<TeamPlayer, string> treeTeams)
-        {
-            treeView2.BeginUpdate();
-            treeView2.Nodes.Clear();
-            if (treeTeams.Root != null)
-            {
-                var s = treeView2.Nodes.Add(treeTeams.Root.Data.Role + @" \ " + treeTeams.Root.Data.PlayerName + @" \ " + treeTeams.Root.Data.TeamName);
-                SetNodeChildTeam(s, treeTeams.Root.Left);
-                SetNodeChildTeam(s, treeTeams.Root.Right);
-            }
-
-            treeView2.EndUpdate();
-        }
-        
-        
-        private static void SetNodeChildTeamByName(TreeNode parent, RbTree<TeamPlayer, string>.Node node)
-        {
-            if (node?.Data == null)
-                return;
-
-            var displayNode = parent.Nodes.Add(node.Data.PlayerName + " \\ " + node.Data.TeamName);
-            if(node.Color is RbTree<TeamPlayer, string>.Color.Red)
-                displayNode.ForeColor = Color.Brown;
-            
-            SetNodeChildTeamByName(displayNode, node.Left);
-            SetNodeChildTeamByName(displayNode, node.Right);
-        }
-        
-        public void ReBuildTreeTeamsByName(RbTree<TeamPlayer, string> treeTeams)
-        {
-            treeView3.BeginUpdate();
-            treeView3.Nodes.Clear();
-            if (treeTeams.Root != null)
-            {
-                var s = treeView3.Nodes.Add(treeTeams.Root);
-                SetNodeChildTeamByName(s, treeTeams.Root.Left);
-                SetNodeChildTeamByName(s, treeTeams.Root.Right);
-            }
-
-            treeView3.EndUpdate();
-        }*/
 
         public string ConvertByName(RbTree<TeamPlayer, string>.Node node)
         {
@@ -193,10 +141,10 @@ namespace TeamOfPlayers.Forms
                 return;
             
             var s = parent.Nodes.Add(str);
-            if(node.Color is RbTree<TData, TKey>.Color.Red)
-                s.ForeColor = Color.Red;
             RecursivelyAddNodeToTheTree(s, node.Left, convertToString);
             RecursivelyAddNodeToTheTree(s, node.Right, convertToString);
+            if(node.Color is RbTree<TData, TKey>.Color.Red)
+                s.ForeColor = Color.Red;
         }
         
         public void ReBuildTree<TData, TKey>(RbTree<TData, TKey> tree, TreeView treeView, Func<RbTree<TData, TKey>.Node, string> convertToString)
@@ -210,7 +158,9 @@ namespace TeamOfPlayers.Forms
                 RecursivelyAddNodeToTheTree(s, tree.Root.Right, convertToString);
             }
 
-            treeView3.EndUpdate();
+            treeView.EndUpdate();
+            treeView.ExpandAll();
+            
         }
 
         private void DebugForm_FormClosed(object sender, FormClosedEventArgs e)

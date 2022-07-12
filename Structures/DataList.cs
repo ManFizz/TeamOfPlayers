@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace TeamOfPlayers.Structures
@@ -13,9 +14,11 @@ namespace TeamOfPlayers.Structures
         }
         
         private Node _head, _tail;
+        private readonly Func<TData, TData, bool> _equalData;
         
-        public DataList()
+        public DataList(Func<TData, TData, bool> equalData)
         {
+            _equalData = equalData;
             _head = null;
             _tail = null;
         }
@@ -75,7 +78,7 @@ namespace TeamOfPlayers.Structures
             var temp = _head;
             while (temp is not null) 
             {
-                if (Program.CompareData(temp.Data, data))
+                if (_equalData(temp.Data, data))
                     return temp;
                 
                 temp = temp.Next;

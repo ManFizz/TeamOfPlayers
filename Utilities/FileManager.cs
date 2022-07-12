@@ -15,8 +15,20 @@ namespace TeamOfPlayers.Utilities
             while (!fileReader.EndOfStream)
             {
                 var parse = fileReader.ReadLine();
-                if (!string.IsNullOrEmpty(parse))
-                    Program.AddData(ParsePlayer(parse));
+                if (string.IsNullOrEmpty(parse))
+                    continue;
+                        
+                parse = parse.Trim();
+                var pos = parse.IndexOf(@"//", StringComparison.Ordinal);
+                if (pos != -1)
+                {
+                    parse = parse.Substring(0, pos);
+                    parse = parse.TrimEnd();
+                    if (string.IsNullOrEmpty(parse))
+                        continue;
+                }
+
+                Program.AddData(ParsePlayer(parse));
             }
             fileReader.Close();
         }
@@ -27,8 +39,20 @@ namespace TeamOfPlayers.Utilities
             while (!fileReader.EndOfStream)
             {
                 var parse = fileReader.ReadLine();
-                if (!string.IsNullOrEmpty(parse))
-                    Program.AddData(ParseTeamPlayer(parse));
+                if (string.IsNullOrEmpty(parse))
+                    continue;
+                
+                parse = parse.Trim();
+                var pos = parse.IndexOf(@"//", StringComparison.Ordinal);
+                if (pos != -1)
+                {
+                    parse = parse.Substring(0, pos);
+                    parse = parse.TrimEnd();
+                    if (string.IsNullOrEmpty(parse))
+                        continue;
+                }
+                
+                Program.AddData(ParseTeamPlayer(parse));
             }
             fileReader.Close();
         }
@@ -90,7 +114,7 @@ namespace TeamOfPlayers.Utilities
                 date = DateTime.ParseExact(parseStrings[1], "dd.MM.yyyy", System.Globalization.CultureInfo.InvariantCulture);
             } catch(FormatException) { throw new ArgumentException("Неправильный формат даты"); }
             
-            if(date.Day <= 0 || date.Day >= 32 || date.Month <= 0 || date.Month >= 13 || date.Year <= 1964 || date.Year >= 2021 )
+            if (date.Day is <= 0 or >= 32 || date.Month is <= 0 or >= 13 || date.Year is <= 1964 or >= 2021)
                 throw new Exception("Недействительная дата");
                 
             var parseSports = parseStrings[2].Split(',').ToList();
